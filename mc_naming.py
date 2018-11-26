@@ -1,4 +1,28 @@
-# mc_naming
+## Checks the naming convention
+
+## position_name_material_iterator_nodeType
+## Example: 
+## c_body_skin_0001_geo
+## c_model_001_grp
+
+def nameElement():
+    return nameElement
+
+def nodeType():
+    allTransform = cmds.ls(type='transform')
+    allowedTypes = ['geo', 'gep', '']
+    nodeType = []
+    for item in allTransform:
+        if (item.split("_")[-1] == "geo"):
+            nodeType.append(item)
+    return nodeType
+
+def material():
+    allowedMaterials = ['skin','metal','leather', ]
+    return material
+
+def iterator():
+    return iterator
 
 def nameSpaces():
     cmds.namespace(setNamespace=':')
@@ -16,14 +40,7 @@ def duplicatedNames():
     	if '|' in item:
             duplicatedNames.append(item)
     return duplicatedNames
-    
-def checkType():
-    allTransform = cmds.ls(type='transform')
-    checkType = []
-    for item in allTransform:
-        if (item.split("_")[-1] == "geo"):
-            checkType.append(item)
-    return checkType
+
 
 def invalidShapeNames():
     allTransform = cmds.ls(type='transform')
