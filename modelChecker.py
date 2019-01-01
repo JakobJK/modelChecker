@@ -2,6 +2,8 @@ from PySide2 import QtCore, QtWidgets
 from shiboken2 import wrapInstance
 from functools import partial
 
+import sys
+import maya.cmds as cmds
 import pymel.core as pm
 import maya.OpenMayaUI as omui
 
@@ -266,7 +268,6 @@ class modelChecker(QtWidgets.QMainWindow):
     def filterNodes(self):
         nodes = []
         allUsuableNodes = []
-
         allNodes = cmds.ls(transforms = True)
         for obj in allNodes:
             if not obj in {'front', 'persp', 'top', 'side'}:
@@ -317,9 +318,7 @@ class modelChecker(QtWidgets.QMainWindow):
         self.reportOutputUI.clear()
         nodes = self.filterNodes()
         if len(nodes) == 0:
-
             self.reportOutputUI.insertPlainText("Error - No nodes to check")
-
         else:
             for obj in self.list:
                 new = obj.split('_')
@@ -582,10 +581,11 @@ def parentGeometry(list):
             parentGeometry.append(obj)
     return parentGeometry
 
-try:
-    win.close()
-except:
-    pass
-win = modelChecker(parent=getMainWindow())
-win.show()
-win.raise_()
+if __name__ = '__main__':
+  try:
+      win.close()
+  except:
+      pass
+  win = modelChecker(parent=getMainWindow())
+  win.show()
+  win.raise_()

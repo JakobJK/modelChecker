@@ -1,41 +1,46 @@
-# modelChecker
+# modelChecker - v0.0.1
 
-A detailed low level model checker for Maya 2018 - written in Python and Pyside.
-
-Work in Progress
+A python script for Autodesk Maya to sanity check digital polygon models for production.
 
 ## Naming
-* Check for proper naming convention
-* Duplicate names - ✓
-* Shape Names
-* Namespaces
+* Naming convetion - x
+* Duplicate Names - ✓
+* Shape Names - ✓
+* Namespaces - ✓
 
 ## General Node Clean up
-* Check for history on objects
-* Unnecessary shaders
-* Strip models of associated layers
-* Transform nodes with multiple shape notes
-* Check for Frozen Transforms
-* Empty Groups
-* Center Pivots
-* Soften all edges (?)
-* Check for Geometry parented under other geometry
+* Layers
+* History
+* Shaders
+* MultipleShapes
+* UnfrozenTransforms
+* UncenteredPivots
+* ParentGeometry
+* EmptyGroups
+* SoftenEdge
+* LockedNodes
 
 ## Topology
-* Triangles, Ngon
-* Non manifold geometry
-* Open edges
-* Edges and Faces with zero length
-* Butterfly Geometry
-* Vertecies with more than 6 edges connected
+* OpenEdges
+* ButterflyGeometry
+* Lamina faces
+* Triangles
+* Ngons
+* ZeroLengthEdges
+* ZeroAreaFaces
+* Nonmanifold
+* Locked normals
 
-## UVs 
-* Overlapping UVs
-* UVs outside of the 1001 - 1999
-* UVs crossing UDIM borders
+## UVs
+* SelfPenetratingUVs
+* Overlappingislands
+* UdimRange
+* CrossBorder
+* ZeroUVarea
+* MissingUVs
 
-## Features of the Checker 
-* Rapport - can add as notes to the group. Should include poly details, amount of objects, 
+## Features of the Checker
+* Rapport - can add as notes to the group. Should include poly details, amount of objects,
 * By pass checks if needed
 * Run on selected models if more than one model in the scene
 
