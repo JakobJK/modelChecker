@@ -18,7 +18,7 @@ Work in Progress
 * Check for Frozen Transforms
 * Empty Groups
 * Center Pivots
-* Soften all edgesw (?)
+* Soften all edges (?)
 * Check for Geometry parented under other geometry
 
 ## Topology
