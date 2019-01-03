@@ -282,6 +282,8 @@ class modelChecker(QtWidgets.QMainWindow):
         else:
             if cmds.objExists(topNode):
                 nodes = cmds.listRelatives(topNode, allDescendents = True, typ="transform")
+                if not nodes:
+                    nodes = topNode
                 nodes.append(topNode)
             else:
                 response = "Object in Top Node doesn't exists\n"
@@ -581,7 +583,7 @@ def parentGeometry(list):
             parentGeometry.append(obj)
     return parentGeometry
 
-if __name__ = '__main__':
+if __name__ == '__main__':
   try:
       win.close()
   except:
