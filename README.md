@@ -86,6 +86,7 @@ Currently fix buttons aren't working.
 ## Authors
 
 [**Jakob Kousholt**](https://www.linkedin.com/in/jakejk/) - Freelance Creature Modeller
+
 [**Niels Peter Kaagaard**](https://www.linkedin.com/in/niels-peter-kaagaard-146b8a13) - Modeller at Weta Digital
 
 ---
