@@ -114,6 +114,7 @@ class modelChecker(QtWidgets.QMainWindow):
         category = set(allCategories)
 
         self.categoryLayout = {}
+        self.categoryWidget = {}
         self.categoryButton = {}
         self.categoryHeader = {}
         self.categoryCollapse = {}
@@ -129,18 +130,27 @@ class modelChecker(QtWidgets.QMainWindow):
 
         # Create the Categories section!!
         for obj in category:
+
+            self.categoryWidget[obj] = QtWidgets.QWidget()
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
+
             self.categoryHeader[obj] = QtWidgets.QHBoxLayout()
             self.categoryButton[obj] = QtWidgets.QPushButton(obj)
             self.categoryCollapse[obj] = QtWidgets.QPushButton("-")
+
+            self.categoryCollapse[obj].clicked.connect(partial(self.toggleUI, obj))
+
             self.categoryCollapse[obj].setMaximumWidth(30)
             self.categoryButton[obj].setStyleSheet("background-color: grey; text-transform: uppercase; color: #000000; font-size: 18px;")
             self.categoryButton[obj].clicked.connect(partial(self.checkCategory, obj))
 
             self.categoryHeader[obj].addWidget(self.categoryButton[obj])
             self.categoryHeader[obj].addWidget(self.categoryCollapse[obj])
+
+            self.categoryWidget[obj].setLayout(self.categoryLayout[obj])
+
             self.checks.addLayout(self.categoryHeader[obj])
-            self.checks.addLayout(self.categoryLayout[obj])
+            self.checks.addWidget(self.categoryWidget[obj])
 
         # Creates the buttons with their settings.
         for obj in self.list:
@@ -227,6 +237,9 @@ class modelChecker(QtWidgets.QMainWindow):
             new = obj.split('_')
             name = new[0]
             self.commandCheckBox[name].setChecked(True)
+    def toggleUI(self, obj):
+       self.categoryWidget[obj].setVisible(not self.categoryWidget[obj].isVisible())
+
 
 
     # Sets all checkboxes to False
@@ -342,9 +355,8 @@ class modelChecker(QtWidgets.QMainWindow):
 ############################### Backend of the UI starts          ###############################
 #################################################################################################
 
-# The UI files to load if a definition doesn't exists for all functions
+# The UI fails to load if a definition doesn't exists for all functions
 # The is temporary functions to make the
-#
 
 def duplicatedNames(list):
     print sys._getframe().f_code.co_name
