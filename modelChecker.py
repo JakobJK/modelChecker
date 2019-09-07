@@ -518,7 +518,6 @@ while not selIt.isDone():
 
 
 def triangles(self, list):
-    print(list)
     triangles = []
     selIt = om.MItSelectionList(self.SLMesh)
     while not selIt.isDone():
@@ -532,21 +531,27 @@ def triangles(self, list):
     	        triangles.append(componentName)
     	    else:
     	        pass
-
     	    faceIt.next(None)
-
     	selIt.next()
     return triangles
 
 
 def ngons(self, list):
     ngons = []
-    for item in list:
-        convertItemToFaces = cmds.ls(cmds.polyListComponentConversion(item, tf=True), fl=True)
-        for eachFace in convertItemToFaces:
-            getFaceEdges = pm.PyNode(eachFace).getEdges()
-            if len(getFaceEdges) > 4:
-                ngons.append(eachFace)
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+    	faceIt = om.MItMeshPolygon(selIt.getDagPath())
+    	objectName = selIt.getDagPath().getPath()
+    	while not faceIt.isDone():
+    	    numOfEdges = faceIt.getEdges()
+    	    if len(numOfEdges) > 4:
+    	        faceIndex = faceIt.index()
+    	        componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+    	        ngons.append(componentName)
+    	    else:
+    	        pass
+    	    faceIt.next(None)
+    	selIt.next()
     return ngons
 
 def zeroLengthEdges(self, list):
@@ -558,6 +563,26 @@ def zeroLengthEdges(self, list):
             if checkEdgeLength < 0.0000000001:
                 zeroLengthEdges.append(eachEdge)
     return zeroLengthEdges
+
+
+def lamina(self, list):
+    selIt = om.MItSelectionList(self.SLMesh)
+    lamina = []
+    while not selIt.isDone():
+    	faceIt = om.MItMeshPolygon(selIt.getDagPath())
+    	objectName = selIt.getDagPath().getPath()
+    	while not faceIt.isDone():
+    	    laminaFaces = faceIt.isLamina()
+    	    if laminaFaces == True:
+    	        faceIndex = faceIt.index()
+    	        componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+    	        lamina.append(componentName)
+    	    else:
+    	        pass
+    	    faceIt.next(None)
+    	selIt.next()
+    return lamina
+
 
 #
 # This is the UV checks
