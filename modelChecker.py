@@ -77,7 +77,7 @@ class modelChecker(QtWidgets.QMainWindow):
         # Adding the stretch element to the checks UI to get everything at the top
         self.resize(1000,900)
         self.list = [
-                #'namingConvention_naming_1_0',
+                'namingConvention_naming_1_0',
                 'duplicatedNames_naming_1_0',
                 'shapeNames_naming_1_1',
                 'namespaces_naming_1_1',
@@ -112,12 +112,9 @@ class modelChecker(QtWidgets.QMainWindow):
             number = obj.split('_')
             allCategories.append(number[1])
 
-
-
         category = set(allCategories)
+        self.SLMesh = om.MSelectionList()
 
-
-        print(allCategories)
         self.categoryLayout = {}
         self.categoryWidget = {}
         self.categoryButton = {}
@@ -248,7 +245,6 @@ class modelChecker(QtWidgets.QMainWindow):
        self.categoryWidget[obj].setVisible(not self.categoryWidget[obj].isVisible())
 
 
-
     # Sets all checkboxes to False
     def uncheckAll(self):
         for obj in self.list:
@@ -287,6 +283,7 @@ class modelChecker(QtWidgets.QMainWindow):
     ## Filter Nodes
     def filterNodes(self):
         nodes = []
+        self.SLMesh.clear()
         allUsuableNodes = []
         allNodes = cmds.ls(transforms = True)
         for obj in allNodes:
@@ -309,21 +306,20 @@ class modelChecker(QtWidgets.QMainWindow):
                 response = "Object in Top Node doesn't exists\n"
                 self.reportOutputUI.clear()
                 self.reportOutputUI.insertPlainText(response)
-
-
-        self.selList = om.MSelectionList()
+        for node in nodes:
+            shapes = cmds.listRelatives(node, shapes=True, typ="mesh")
+            if shapes:
+                self.SLMesh.add(node)
         return nodes
 
     def commandToRun(self, command):
         # Run FilterNodes
         nodes = self.filterNodes()
         if len(nodes) == 0:
-
             self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
-
         else:
             # For Each node in filterNodes, run command.
-            self.errorNodes = command(nodes)
+            self.errorNodes = command(self, nodes)
             # Return error nodes
             if self.errorNodes:
                 self.reportOutputUI.insertPlainText(command.func_name + " -- FAILED\n")
@@ -361,60 +357,72 @@ class modelChecker(QtWidgets.QMainWindow):
         print "yes"
 
 
-# The UI fails to load if a definition doesn't exists for all functions
-# The is temporary functions to make the
 
-def duplicatedNames(list):
+##
+## Helper Functions
+
+
+
+
+#################################################################################################
+############################### Backend of the UI starts          ###############################
+#################################################################################################
+
+# The UI files to load if a definition doesn't exists for all functions
+# The is temporary functions to make the
+#
+
+def duplicatedNames(self, list):
     print sys._getframe().f_code.co_name
-def namingConvention(list):
+def namingConvention(self, list):
     print sys._getframe().f_code.co_name
-def shapeNames(list):
+def shapeNames(self, list):
     print sys._getframe().f_code.co_name
-def namespaces(list):
+def namespaces(self, list):
     print sys._getframe().f_code.co_name
-def layers(list):
+def layers(self, list):
     print sys._getframe().f_code.co_name
-def history(list):
+def history(self, list):
     print sys._getframe().f_code.co_name
-def shaders(list):
+def shaders(self, list):
     print sys._getframe().f_code.co_name
-def multipleShapes(list):
+def multipleShapes(self, list):
     print sys._getframe().f_code.co_name
-def unfrozenTransforms(list):
+def unfrozenTransforms(self, list):
     print sys._getframe().f_code.co_name
-def uncenteredPivots(list):
+def uncenteredPivots(self, list):
     print sys._getframe().f_code.co_name
-def parentGeometry(list):
+def parentGeometry(self, list):
     print sys._getframe().f_code.co_name
-def ngons(list):
+def ngons(self, list):
     print sys._getframe().f_code.co_name
-def triangles(list):
+def triangles(self, list):
     print sys._getframe().f_code.co_name
-def emptyGroups(list):
+def emptyGroups(self, list):
     print sys._getframe().f_code.co_name
-def softenEdge(list):
+def softenEdge(self, list):
     print sys._getframe().f_code.co_name
-def noneQuads(list):
+def noneQuads(self, list):
     print sys._getframe().f_code.co_name
-def openEdges(list):
+def openEdges(self, list):
     print sys._getframe().f_code.co_name
-def ButterflyGeometry(list):
+def ButterflyGeometry(self, list):
     print sys._getframe().f_code.co_name
-def selfPenetratingUVs(list):
+def selfPenetratingUVs(self, list):
     print sys._getframe().f_code.co_name
-def overlappingIslands(list):
+def overlappingIslands(self, list):
     print sys._getframe().f_code.co_name
-def udimRange(list):
+def udimRange(self, list):
     print sys._getframe().f_code.co_name
-def crossBorder(list):
+def crossBorder(self, list):
     print sys._getframe().f_code.co_name
-def zeroAreaFaces(list):
+def zeroAreaFaces(self, list):
     print sys._getframe().f_code.co_name
-def zeroLengthEdges(list):
+def zeroLengthEdges(self, list):
     print sys._getframe().f_code.co_name
-def missingUVs(list):
+def missingUVs(self, list):
     print sys._getframe().f_code.co_name
-def lamina(list):
+def lamina(self, list):
     print sys._getframe().f_code.co_name
 
 
@@ -446,21 +454,21 @@ def softenEdge_fix():
 # This is the Naming checks
 #
 
-def duplicatedNames(list):
+def duplicatedNames(self, list):
     duplicatedNames = []
     for item in list:
     	if '|' in item:
             duplicatedNames.append(item)
     return duplicatedNames
 
-def namespaces(list):
+def namespaces(self, list):
     namespaces = []
     for obj in list:
         if ':' in obj:
             namespaces.append(obj)
     return namespaces
 
-def shapeNames(list):
+def shapeNames(self, list):
     shapeNames = []
     for obj in list:
         new = obj.split('|')
@@ -474,20 +482,64 @@ def shapeNames(list):
 #
 # This is the Topology checks
 #
+"""
+# Create selection iterator
+selIt = om.MItSelectionList(win.SLMesh)
+
+# Iterate over each object in active selection
+while not selIt.isDone():
+
+    # Iterate over each face for each object
+	faceIt = om.MItMeshPolygon(selIt.getDagPath())
+
+	# Get object name
+	objectName = selIt.getDagPath().getPath()
+
+	while not faceIt.isDone():
+
+	    # Get number of edges per face
+	    numOfEdges = faceIt.getEdges()
+
+	    # If number of edges per face is 3 add to empty selection list
+	    if len(numOfEdges) == 3:
+	        faceIndex = faceIt.index()
+	        componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+	        #M_triangleList.add(componentName)
+	        MC_triangleList.append(componentName)
+
+	    else:
+	        pass
+
+	    faceIt.next(None)
+
+	selIt.next()
+"""
 
 
-def triangles(list):
+
+def triangles(self, list):
+    print(list)
     triangles = []
-    for item in list:
-        convertItemToFaces = cmds.ls(cmds.polyListComponentConversion(item, tf=True), fl=True)
-        for eachFace in convertItemToFaces:
-            checkIfTri = pm.PyNode(eachFace).numTriangles()
-            if checkIfTri == 1:
-                triangles.append(eachFace)
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+    	faceIt = om.MItMeshPolygon(selIt.getDagPath())
+    	objectName = selIt.getDagPath().getPath()
+    	while not faceIt.isDone():
+    	    numOfEdges = faceIt.getEdges()
+    	    if len(numOfEdges) == 3:
+    	        faceIndex = faceIt.index()
+    	        componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+    	        triangles.append(componentName)
+    	    else:
+    	        pass
+
+    	    faceIt.next(None)
+
+    	selIt.next()
     return triangles
 
 
-def ngons(list):
+def ngons(self, list):
     ngons = []
     for item in list:
         convertItemToFaces = cmds.ls(cmds.polyListComponentConversion(item, tf=True), fl=True)
@@ -497,7 +549,7 @@ def ngons(list):
                 ngons.append(eachFace)
     return ngons
 
-def zeroLengthEdges(list):
+def zeroLengthEdges(self, list):
     zeroLengthEdges = []
     for item in list:
         convertItemToEdges = cmds.ls(cmds.polyListComponentConversion(item, te=True), fl=True)
@@ -511,7 +563,7 @@ def zeroLengthEdges(list):
 # This is the UV checks
 #
 
-def selfPenetratingUVs(list):
+def selfPenetratingUVs(self, list):
     selfPenetratingUVs = []
     for obj in list:
         shape = cmds.listRelatives(obj, shapes = True, fullPath = True)
@@ -522,7 +574,7 @@ def selfPenetratingUVs(list):
                 selfPenetratingUVs.append(obj)
     return selfPenetratingUVs
 
-def missingUVs(list):
+def missingUVs(self, list):
     missingUVsList = []
     for item in list:
         convertItemToFaces = cmds.ls(cmds.polyListComponentConversion(item, tf=True), fl=True)
@@ -536,7 +588,7 @@ def missingUVs(list):
 # This is the general checks
 #
 
-def unfrozenTransforms(list):
+def unfrozenTransforms(self, list):
     unfrozenTransforms = []
     for obj in list:
         translation = cmds.xform(obj, q=True, worldSpace = True, translation = True)
@@ -546,7 +598,7 @@ def unfrozenTransforms(list):
             unfrozenTransforms.append(obj)
     return unfrozenTransforms
 
-def layers(list):
+def layers(self, list):
     layers = []
     for obj in list:
         layer = cmds.listConnections(obj, type = "displayLayer")
@@ -554,7 +606,7 @@ def layers(list):
             layers.append(obj)
     return layers
 
-def shaders(list):
+def shaders(self, list):
     shaders = []
     for obj in list:
         shadingGrps = None
@@ -566,18 +618,18 @@ def shaders(list):
                 shaders.append(obj)
     return shaders
 
-def history(list):
+def history(self, list):
     history = []
     for obj in list:
         shape = cmds.listRelatives(obj, shapes = True, fullPath = True)
         if shape is not None:
             if cmds.nodeType(shape[0]) == 'mesh':
                 historySize = len(cmds.listHistory(shape))
-            if historySize > 1:
-                history.append(obj)
+                if historySize > 1:
+                    history.append(obj)
     return history
 
-def emptyGroups(list):
+def emptyGroups(self, list):
     emptyGroups = []
     for obj in list:
         children = cmds.listRelatives(obj, ad = True)
@@ -585,7 +637,7 @@ def emptyGroups(list):
             emptyGroups.append(obj)
     return emptyGroups
 
-def parentGeometry(list):
+def parentGeometry(self, list):
     parentGeometry = []
     shapeNode = False
     for obj in list:
