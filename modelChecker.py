@@ -583,10 +583,23 @@ def lamina(self, list):
     	selIt.next()
     return lamina
 
-
-#
-# This is the UV checks
-#
+def zeroAreaFaces(self, list):
+    zeroAreaFaces = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+    	faceIt = om.MItMeshPolygon(selIt.getDagPath())
+    	objectName = selIt.getDagPath().getPath()
+    	while not faceIt.isDone():
+    	    faceArea = faceIt.zeroArea()
+    	    if faceArea == True:
+    	        faceIndex = faceIt.index()
+    	        componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+    	        zeroAreaFaces.append(componentName)
+    	    else:
+    	        pass
+    	    faceIt.next(None)
+    	selIt.next()
+    return zeroAreaFaces
 
 def selfPenetratingUVs(self, list):
     selfPenetratingUVs = []
