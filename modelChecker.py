@@ -6,6 +6,7 @@ import sys
 import maya.cmds as cmds
 import pymel.core as pm
 import maya.OpenMayaUI as omui
+import maya.api.OpenMaya as om
 
 def getMainWindow():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -76,7 +77,7 @@ class modelChecker(QtWidgets.QMainWindow):
         # Adding the stretch element to the checks UI to get everything at the top
         self.resize(1000,900)
         self.list = [
-                'namingConvention_naming_1_0',
+                #'namingConvention_naming_1_0',
                 'duplicatedNames_naming_1_0',
                 'shapeNames_naming_1_1',
                 'namespaces_naming_1_1',
@@ -111,8 +112,12 @@ class modelChecker(QtWidgets.QMainWindow):
             number = obj.split('_')
             allCategories.append(number[1])
 
+
+
         category = set(allCategories)
 
+
+        print(allCategories)
         self.categoryLayout = {}
         self.categoryWidget = {}
         self.categoryButton = {}
@@ -237,6 +242,8 @@ class modelChecker(QtWidgets.QMainWindow):
             new = obj.split('_')
             name = new[0]
             self.commandCheckBox[name].setChecked(True)
+
+
     def toggleUI(self, obj):
        self.categoryWidget[obj].setVisible(not self.categoryWidget[obj].isVisible())
 
@@ -302,6 +309,9 @@ class modelChecker(QtWidgets.QMainWindow):
                 response = "Object in Top Node doesn't exists\n"
                 self.reportOutputUI.clear()
                 self.reportOutputUI.insertPlainText(response)
+
+
+        self.selList = om.MSelectionList()
         return nodes
 
     def commandToRun(self, command):
@@ -350,10 +360,6 @@ class modelChecker(QtWidgets.QMainWindow):
     def runFix(self, list, command):
         print "yes"
 
-
-#################################################################################################
-############################### Backend of the UI starts          ###############################
-#################################################################################################
 
 # The UI fails to load if a definition doesn't exists for all functions
 # The is temporary functions to make the
