@@ -1,4 +1,3 @@
-#--coding: utf-8 --
 from PySide2 import QtCore, QtWidgets
 from shiboken2 import wrapInstance
 from functools import partial
@@ -137,7 +136,7 @@ class modelChecker(QtWidgets.QMainWindow):
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
             self.categoryHeader[obj] = QtWidgets.QHBoxLayout()
             self.categoryButton[obj] = QtWidgets.QPushButton(obj)
-            self.categoryCollapse[obj] = QtWidgets.QPushButton("-")
+            self.categoryCollapse[obj] = QtWidgets.QPushButton(u'\u2193'.encode('utf-8'))
             self.categoryCollapse[obj].clicked.connect(partial(self.toggleUI, obj))
             self.categoryCollapse[obj].setMaximumWidth(30)
             self.categoryButton[obj].setStyleSheet("background-color: grey; text-transform: uppercase; color: #000000; font-size: 18px;")
@@ -237,12 +236,11 @@ class modelChecker(QtWidgets.QMainWindow):
     def toggleUI(self, obj):
        state = self.categoryWidget[obj].isVisible()
        if state:
-           self.categoryCollapse[obj].setText('+')
+           self.categoryCollapse[obj].setText(u'\u21B5'.encode('utf-8'))
            self.categoryWidget[obj].setVisible(not state)
        else:
-           self.categoryCollapse[obj].setText('-')
+           self.categoryCollapse[obj].setText(u'\u2193'.encode('utf-8'))
            self.categoryWidget[obj].setVisible(not state)
-
 
     # Sets all checkboxes to False
     def uncheckAll(self):
@@ -588,26 +586,7 @@ def missingUVs(self, list):
                 missingUVs.append(eachFace)
     return missingUVs
 
-"""
-def udimRange(self, list):
-
-    udimRange = []
-
-    selIt = om.MItSelectionList(self.SLMesh)
-    while not selIt.isDone():
-        faceIt = om.MItMeshPolygon(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
-        while not faceIt.isDone():
-            faceUVArea = faceIt.getUVArea()
-            print(faceUVArea)
-            faceIt.next(None)
-
-        selIt.next()
-    return udimRange
-"""
-#
 # This is the general checks
-#
 
 def unfrozenTransforms(self, list):
     unfrozenTransforms = []
