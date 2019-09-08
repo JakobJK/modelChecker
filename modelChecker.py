@@ -1,3 +1,4 @@
+#--coding: utf-8 --
 from PySide2 import QtCore, QtWidgets
 from shiboken2 import wrapInstance
 from functools import partial
@@ -132,25 +133,18 @@ class modelChecker(QtWidgets.QMainWindow):
 
         # Create the Categories section!!
         for obj in category:
-
             self.categoryWidget[obj] = QtWidgets.QWidget()
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
-
             self.categoryHeader[obj] = QtWidgets.QHBoxLayout()
             self.categoryButton[obj] = QtWidgets.QPushButton(obj)
             self.categoryCollapse[obj] = QtWidgets.QPushButton("-")
-
             self.categoryCollapse[obj].clicked.connect(partial(self.toggleUI, obj))
-
             self.categoryCollapse[obj].setMaximumWidth(30)
             self.categoryButton[obj].setStyleSheet("background-color: grey; text-transform: uppercase; color: #000000; font-size: 18px;")
             self.categoryButton[obj].clicked.connect(partial(self.checkCategory, obj))
-
             self.categoryHeader[obj].addWidget(self.categoryButton[obj])
             self.categoryHeader[obj].addWidget(self.categoryCollapse[obj])
-
             self.categoryWidget[obj].setLayout(self.categoryLayout[obj])
-
             self.checks.addLayout(self.categoryHeader[obj])
             self.checks.addWidget(self.categoryWidget[obj])
 
@@ -161,7 +155,6 @@ class modelChecker(QtWidgets.QMainWindow):
             category = new[1]
             check = int(new[2])
             fix = int(new[3])
-
 
             self.commandWidget[name] = QtWidgets.QWidget()
             self.commandWidget[name].setMaximumHeight(40)
@@ -184,7 +177,7 @@ class modelChecker(QtWidgets.QMainWindow):
             self.commandRunButton[name] = QtWidgets.QPushButton("Run")
             self.commandRunButton[name].setMaximumWidth(30)
 
-            self.commandRunButton[name].clicked.connect(partial(self.commandToRun, eval(name)))
+            self.commandRunButton[name].clicked.connect(partial(self.commandToRun, [eval(name)]))
 
             self.errorNodesButton[name] = QtWidgets.QPushButton("Select Error Nodes")
             self.errorNodesButton[name].setEnabled(False)
@@ -193,7 +186,7 @@ class modelChecker(QtWidgets.QMainWindow):
             self.commandFixButton[name] = QtWidgets.QPushButton("Fix")
 
             if fix == 1:
-                self.commandRunButton[name].clicked.connect(partial(self.commandToRun, eval(name + "_fix")))
+                self.commandRunButton[name].clicked.connect(partial(self.commandToRun, [eval(name + "_fix")]))
 
             self.commandFixButton[name].setEnabled(False)
             self.commandFixButton[name].setMaximumWidth(40)
@@ -242,7 +235,13 @@ class modelChecker(QtWidgets.QMainWindow):
 
 
     def toggleUI(self, obj):
-       self.categoryWidget[obj].setVisible(not self.categoryWidget[obj].isVisible())
+       state = self.categoryWidget[obj].isVisible()
+       if state:
+           self.categoryCollapse[obj].setText('+')
+           self.categoryWidget[obj].setVisible(not state)
+       else:
+           self.categoryCollapse[obj].setText('-')
+           self.categoryWidget[obj].setVisible(not state)
 
 
     # Sets all checkboxes to False
@@ -312,49 +311,51 @@ class modelChecker(QtWidgets.QMainWindow):
                 self.SLMesh.add(node)
         return nodes
 
-    def commandToRun(self, command):
+    def commandToRun(self, commands):
         # Run FilterNodes
         nodes = self.filterNodes()
-        if len(nodes) == 0:
-            self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
-        else:
-            # For Each node in filterNodes, run command.
-            self.errorNodes = command(self, nodes)
-            # Return error nodes
-            if self.errorNodes:
-                self.reportOutputUI.insertPlainText(command.func_name + " -- FAILED\n")
-                for obj in self.errorNodes:
-                    self.reportOutputUI.insertPlainText("    " + obj + "\n")
-
-                self.errorNodesButton[command.func_name].setEnabled(True)
-                self.errorNodesButton[command.func_name].clicked.connect(partial(self.selectErrorNodes, self.errorNodes))
-                self.commandLabel[command.func_name].setStyleSheet("background-color: #664444;")
+        for command in commands:
+            if len(nodes) == 0:
+                self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
             else:
-                self.commandLabel[command.func_name].setStyleSheet("background-color: #446644;")
-                self.reportOutputUI.insertPlainText(command.func_name + " -- SUCCES\n")
-                self.errorNodesButton[command.func_name].setEnabled(False)
+                # For Each node in filterNodes, run command.
+                self.errorNodes = command(self, nodes)
+                # Return error nodes
+                if self.errorNodes:
+                    self.reportOutputUI.insertPlainText(command.func_name + " -- FAILED\n")
+                    for obj in self.errorNodes:
+                        self.reportOutputUI.insertPlainText("    " + obj + "\n")
+
+                    self.errorNodesButton[command.func_name].setEnabled(True)
+                    self.errorNodesButton[command.func_name].clicked.connect(partial(self.selectErrorNodes, self.errorNodes))
+                    self.commandLabel[command.func_name].setStyleSheet("background-color: #664444;")
+                else:
+                    self.commandLabel[command.func_name].setStyleSheet("background-color: #446644;")
+                    self.reportOutputUI.insertPlainText(command.func_name + " -- SUCCES\n")
+                    self.errorNodesButton[command.func_name].setEnabled(False)
 
     # Write the report to report UI.
     def sanityCheck(self):
         self.reportOutputUI.clear()
-        nodes = self.filterNodes()
-        if len(nodes) == 0:
-            self.reportOutputUI.insertPlainText("Error - No nodes to check")
+        checkedCommands = []
+        for obj in self.list:
+            new = obj.split('_')
+            name = new[0]
+            if self.commandCheckBox[name].isChecked():
+                checkedCommands.append(eval(name))
+            else:
+                self.commandLabel[name].setStyleSheet("background-color: none;")
+        if len(checkedCommands) == 0:
+            print("You have to select something")
         else:
-            for obj in self.list:
-                new = obj.split('_')
-                name = new[0]
-                if self.commandCheckBox[name].isChecked():
-                    self.commandToRun(eval(name))
-                else:
-                    self.commandLabel[name].setStyleSheet("background-color: none;")
+            self.commandToRun(checkedCommands)
 
     def selectErrorNodes(self, list):
         cmds.select(list)
 
     #this definition needs to run the Fix
     def runFix(self, list, command):
-        print "yes"
+        print ("yes")
 
 
 
@@ -479,42 +480,7 @@ def shapeNames(self, list):
                 shapeNames.append(obj)
     return shapeNames
 
-#
 # This is the Topology checks
-#
-"""
-# Create selection iterator
-selIt = om.MItSelectionList(win.SLMesh)
-
-# Iterate over each object in active selection
-while not selIt.isDone():
-
-    # Iterate over each face for each object
-	faceIt = om.MItMeshPolygon(selIt.getDagPath())
-
-	# Get object name
-	objectName = selIt.getDagPath().getPath()
-
-	while not faceIt.isDone():
-
-	    # Get number of edges per face
-	    numOfEdges = faceIt.getEdges()
-
-	    # If number of edges per face is 3 add to empty selection list
-	    if len(numOfEdges) == 3:
-	        faceIndex = faceIt.index()
-	        componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
-	        #M_triangleList.add(componentName)
-	        MC_triangleList.append(componentName)
-
-	    else:
-	        pass
-
-	    faceIt.next(None)
-
-	selIt.next()
-"""
-
 
 
 def triangles(self, list):
@@ -613,15 +579,32 @@ def selfPenetratingUVs(self, list):
     return selfPenetratingUVs
 
 def missingUVs(self, list):
-    missingUVsList = []
+    missingUVs = []
     for item in list:
         convertItemToFaces = cmds.ls(cmds.polyListComponentConversion(item, tf=True), fl=True)
         for eachFace in convertItemToFaces:
             checkForMissingUVs = pm.PyNode(eachFace).hasUVs()
             if checkForMissingUVs == False:
-                missingUVsList.append(eachFace)
-    return missingUVsList
+                missingUVs.append(eachFace)
+    return missingUVs
 
+"""
+def udimRange(self, list):
+
+    udimRange = []
+
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+        faceIt = om.MItMeshPolygon(selIt.getDagPath())
+        objectName = selIt.getDagPath().getPath()
+        while not faceIt.isDone():
+            faceUVArea = faceIt.getUVArea()
+            print(faceUVArea)
+            faceIt.next(None)
+
+        selIt.next()
+    return udimRange
+"""
 #
 # This is the general checks
 #
