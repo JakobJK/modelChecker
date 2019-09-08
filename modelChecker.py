@@ -57,10 +57,11 @@ class modelChecker(QtWidgets.QMainWindow):
         reportLabel = QtWidgets.QLabel("Report:")
 
         self.reportBoxLayout.addWidget(reportLabel)
-
         self.report.addLayout(self.reportBoxLayout)
 
         self.reportOutputUI = QtWidgets.QPlainTextEdit()
+
+        self.reportOutputUI.setMinimumWidth(600)
         self.report.addWidget(self.reportOutputUI)
 
         self.checkRunButton = QtWidgets.QPushButton("Run All Checked")
@@ -238,9 +239,11 @@ class modelChecker(QtWidgets.QMainWindow):
        if state:
            self.categoryCollapse[obj].setText(u'\u21B5'.encode('utf-8'))
            self.categoryWidget[obj].setVisible(not state)
+           self.adjustSize()
        else:
            self.categoryCollapse[obj].setText(u'\u2193'.encode('utf-8'))
            self.categoryWidget[obj].setVisible(not state)
+
 
     # Sets all checkboxes to False
     def uncheckAll(self):
