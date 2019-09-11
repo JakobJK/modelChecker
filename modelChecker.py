@@ -521,17 +521,6 @@ def ngons(self, list):
     	selIt.next()
     return ngons
 
-def zeroLengthEdges(self, list):
-    zeroLengthEdges = []
-    for item in list:
-        convertItemToEdges = cmds.ls(cmds.polyListComponentConversion(item, te=True), fl=True)
-        for eachEdge in convertItemToEdges:
-            checkEdgeLength = pm.PyNode(eachEdge).getLength()
-            if checkEdgeLength < 0.0000000001:
-                zeroLengthEdges.append(eachEdge)
-    return zeroLengthEdges
-
-
 def lamina(self, list):
     selIt = om.MItSelectionList(self.SLMesh)
     lamina = []
