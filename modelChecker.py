@@ -99,6 +99,7 @@ class modelChecker(QtWidgets.QMainWindow):
                 'lamina_topology_0_0',
                 'zeroAreaFaces_topology_0_0',
                 'zeroLengthEdges_topology_0_0',
+                'noneManifoldEdges_topology_0_0',
 
                 'selfPenetratingUVs_UVs_0_0',
                 'overlappingIslands_UVs_0_0',
@@ -584,6 +585,23 @@ def selfPenetratingUVs(self, list):
             for obj in overlapping:
                 selfPenetratingUVs.append(obj)
     return selfPenetratingUVs
+
+def noneManifoldEdges(self, list):
+    noneManifoldEdges = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+        edgeIt = om.MItMeshEdge(selIt.getDagPath())
+        objectName = selIt.getDagPath().getPath()
+        while not edgeIt.isDone():
+            if edgeIt.numConnectedFaces() > 2:
+                edgeIndex = edgeIt.index()
+                componentName = str(objectName) + '.e[' + str(edgeIndex) + ']'
+                noneManifoldEdges.append(componentName)
+            else:
+                pass
+            edgeIt.next()
+        selIt.next()
+    return noneManifoldEdges
 
 def missingUVs(self, list):
     missingUVs = []
