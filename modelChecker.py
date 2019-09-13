@@ -635,14 +635,14 @@ def starlike(self, list):
     while not selIt.isDone():
         polyIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
-        while not edgeIt.isDone():
+        while not polyIt.isDone():
             if polyIt.isStarlike() == False:
                 polygonIndex = polyIt.index()
                 componentName = str(objectName) + '.e[' + str(polygonIndex) + ']'
                 starlike.append(componentName)
             else:
                 pass
-            edgeIt.next()
+            polyIt.next(None)
         selIt.next()
     return starlike
 
