@@ -703,6 +703,13 @@ def history(self, list):
                     history.append(obj)
     return history
 
+def uncenteredPivots(self, list):
+    uncenteredPivots = []
+    for obj in list:
+        if cmds.xform(obj,q=1,ws=1,rp=1) != [0,0,0]:
+            uncenteredPivots.append(obj)
+    return uncenteredPivots
+
 def emptyGroups(self, list):
     emptyGroups = []
     for obj in list:
