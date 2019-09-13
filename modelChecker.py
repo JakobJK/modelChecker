@@ -80,22 +80,22 @@ class modelChecker(QtWidgets.QMainWindow):
         self.list = [
                 'namingConvention_naming_1_0',
                 'duplicatedNames_naming_1_0',
-                'shapeNames_naming_1_1',
-                'namespaces_naming_1_1',
+                'shapeNames_naming_1_0',
+                'namespaces_naming_1_0',
 
                 'layers_general_1_1',
                 'history_general_1_1',
                 'shaders_general_1_1',
                 'multipleShapes_general_1_0',
-                'unfrozenTransforms_general_1_1',
-                'uncenteredPivots_general_1_1',
+                'unfrozenTransforms_general_1_0',
+                'uncenteredPivots_general_1_0',
                 'parentGeometry_general_1_0',
-                'emptyGroups_general_1_1',
-                'softenEdge_general_1_1',
+                'emptyGroups_general_1_0',
 
                 'triangles_topology_0_0',
                 'ngons_topology_0_0',
                 'openEdges_topology_0_0',
+                'hardEdges_topology_1_0',
                 'lamina_topology_0_0',
                 'zeroAreaFaces_topology_0_0',
                 'zeroLengthEdges_topology_0_0',
@@ -315,10 +315,10 @@ class modelChecker(QtWidgets.QMainWindow):
     def commandToRun(self, commands):
         # Run FilterNodes
         nodes = self.filterNodes()
-        for command in commands:
-            if len(nodes) == 0:
-                self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
-            else:
+        if len(nodes) == 0:
+            self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
+        else:
+            for command in commands:
                 # For Each node in filterNodes, run command.
                 self.errorNodes = command(self, nodes)
                 # Return error nodes
@@ -402,7 +402,7 @@ def triangles(self, list):
     print sys._getframe().f_code.co_name
 def emptyGroups(self, list):
     print sys._getframe().f_code.co_name
-def softenEdge(self, list):
+def hardEdges(self, list):
     print sys._getframe().f_code.co_name
 def noneQuads(self, list):
     print sys._getframe().f_code.co_name
@@ -433,23 +433,23 @@ def lamina(self, list):
 
 
 def shapeNames_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 def namespaces_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 def layers_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 def history_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 def shaders_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 def unfrozenTransforms_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 def uncenteredPivots_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 def emptyGroups_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 def softenEdge_fix():
-    print "lol"
+    print sys._getframe().f_code.co_name
 
 
 #
@@ -520,6 +520,23 @@ def ngons(self, list):
     	    faceIt.next(None)
     	selIt.next()
     return ngons
+
+def hardEdges(self, list):
+    hardEdges = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+        edgeIt = om.MItMeshEdge(selIt.getDagPath())
+        objectName = selIt.getDagPath().getPath()
+        while not edgeIt.isDone():
+            if edgeIt.isSmooth == False and edgeIt.onBoundary() == False:
+                edgeIndex = edgeIt.index()
+                componentName = str(objectName) + '.e[' + str(edgeIndex) + ']'
+                hardEdges.append(componentName)
+            else:
+                pass
+            edgeIt.next()
+        selIt.next()
+    return hardEdges
 
 def lamina(self, list):
     selIt = om.MItSelectionList(self.SLMesh)
