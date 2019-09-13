@@ -100,6 +100,7 @@ class modelChecker(QtWidgets.QMainWindow):
                 'zeroAreaFaces_topology_0_0',
                 'zeroLengthEdges_topology_0_0',
                 'noneManifoldEdges_topology_0_0',
+                'starlike_topology_0_0',
 
                 'selfPenetratingUVs_UVs_0_0',
                 'overlappingIslands_UVs_0_0',
@@ -627,6 +628,23 @@ def openEdges(self, list):
             edgeIt.next()
         selIt.next()
     return openEdges
+
+def starlike(self, list):
+    starlike = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+        polyIt = om.MItMeshPolygon(selIt.getDagPath())
+        objectName = selIt.getDagPath().getPath()
+        while not edgeIt.isDone():
+            if polyIt.isStarlike() == False:
+                polygonIndex = polyIt.index()
+                componentName = str(objectName) + '.e[' + str(polygonIndex) + ']'
+                starlike.append(componentName)
+            else:
+                pass
+            edgeIt.next()
+        selIt.next()
+    return starlike
 
 def missingUVs(self, list):
     missingUVs = []
