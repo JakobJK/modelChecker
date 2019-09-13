@@ -78,7 +78,7 @@ class modelChecker(QtWidgets.QMainWindow):
         # Adding the stretch element to the checks UI to get everything at the top
         self.resize(1000,900)
         self.list = [
-                'namingConvention_naming_1_0',
+                'trailingNumbers_naming_1_0',
                 'duplicatedNames_naming_1_0',
                 'shapeNames_naming_1_0',
                 'namespaces_naming_1_0',
@@ -378,7 +378,7 @@ class modelChecker(QtWidgets.QMainWindow):
 
 def duplicatedNames(self, list):
     print sys._getframe().f_code.co_name
-def namingConvention(self, list):
+def trailingNumbers(self, list):
     print sys._getframe().f_code.co_name
 def shapeNames(self, list):
     print sys._getframe().f_code.co_name
@@ -457,6 +457,13 @@ def softenEdge_fix():
 #
 # This is the Naming checks
 #
+def trailingNumbers(self, list):
+    numbers = ['0','1','2','3','4','5','6','7','8','9']
+    trailingNumbers = []
+    for obj in list:
+        if obj[len(obj)-1] in numbers:
+            trailingNumbers.append(obj)
+    return trailingNumbers
 
 def duplicatedNames(self, list):
     duplicatedNames = []
