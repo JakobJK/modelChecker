@@ -95,7 +95,7 @@ class modelChecker(QtWidgets.QMainWindow):
                 'triangles_topology_0_0',
                 'ngons_topology_0_0',
                 'openEdges_topology_0_0',
-                'hardEdges_topology_1_0',
+                'hardEdges_topology_0_0',
                 'lamina_topology_0_0',
                 'zeroAreaFaces_topology_0_0',
                 'zeroLengthEdges_topology_0_0',
@@ -630,12 +630,16 @@ def openEdges(self, list):
 
 def missingUVs(self, list):
     missingUVs = []
-    for item in list:
-        convertItemToFaces = cmds.ls(cmds.polyListComponentConversion(item, tf=True), fl=True)
-        for eachFace in convertItemToFaces:
-            checkForMissingUVs = pm.PyNode(eachFace).hasUVs()
-            if checkForMissingUVs == False:
-                missingUVs.append(eachFace)
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+    	faceIt = om.MItMeshPolygon(selIt.getDagPath())
+    	objectName = selIt.getDagPath().getPath()
+    	while not faceIt.isDone():
+            if faceIt.hasUVs() == False:
+                componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                missingUVs.append(componentName)
+    	    faceIt.next(None)
+    	selIt.next()
     return missingUVs
 
 # This is the general checks
