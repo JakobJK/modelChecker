@@ -316,6 +316,7 @@ class modelChecker(QtWidgets.QMainWindow):
     def commandToRun(self, commands):
         # Run FilterNodes
         nodes = self.filterNodes()
+        self.reportOutputUI.clear()
         if len(nodes) == 0:
             self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
         else:
@@ -602,6 +603,23 @@ def noneManifoldEdges(self, list):
             edgeIt.next()
         selIt.next()
     return noneManifoldEdges
+
+def openEdges(self, list):
+    openEdges = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+        edgeIt = om.MItMeshEdge(selIt.getDagPath())
+        objectName = selIt.getDagPath().getPath()
+        while not edgeIt.isDone():
+            if edgeIt.numConnectedFaces() < 2:
+                edgeIndex = edgeIt.index()
+                componentName = str(objectName) + '.e[' + str(edgeIndex) + ']'
+                openEdges.append(componentName)
+            else:
+                pass
+            edgeIt.next()
+        selIt.next()
+    return openEdges
 
 def missingUVs(self, list):
     missingUVs = []
