@@ -584,6 +584,19 @@ def zeroAreaFaces(self, list):
     	selIt.next()
     return zeroAreaFaces
 
+def zeroLengthEdges(self, list):
+    zeroLengthEdges = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+    	edgeIt = om.MItMeshEdge(selIt.getDagPath())
+    	objectName = selIt.getDagPath().getPath()
+    	while not edgeIt.isDone():
+    	    edgeLength = edgeIt.getLength()
+    	    print(edgeLength)
+    	    edgeIt.next(None)
+    	selIt.next()
+    return zeroLengthEdges
+
 def selfPenetratingUVs(self, list):
     selfPenetratingUVs = []
     for obj in list:
