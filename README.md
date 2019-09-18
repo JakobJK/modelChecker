@@ -37,122 +37,123 @@ Important! Your current selection will have prioirtiy over the top node defined 
   - [Setup](#setup)
 - [Usage](#usage)
 - [Documentation](#documentation)
-  - [Naming](#naming)
-    - [trailingNumbers](#trailingnumbers)
-    - [duplicatedNames](#duplicatednames)
-    - [shapeNames](#shapenames)
-    - [namespaces](#namespaces)
-  - [Topology](#topology)
-    - [triangles](#triangles)
-    - [ngons](#ngons)
-    - [openEdges](#openedges)
-    - [hardEdges](#hardedges)
-    - [lamina](#lamina)
-    - [zeroAreaFaces](#zeroareafaces)
-    - [zeroLengthEdges](#zerolengthedges)
-    - [noneManifoldEdges](#nonemanifoldedges)
-    - [starlike](#starlike)
-  - [UVs](#uvs)
-    - [selfPenetratingUVs](#selfpenetratinguvs)
-    - [missingUVs](#missinguvs)
-    - [uvRange](#uvrange)
-    - [crossBorder](#crossborder)
-  - [General](#general)
-    - [layers](#layers)
-    - [history](#history)
-    - [shaders](#shaders)
-    - [unfrozenTransforms](#unfrozentransforms)
-    - [uncenteredPivots](#uncenteredpivots)
-    - [parentGeometry](#parentgeometry)
-    - [emptyGroups](#emptygroups)
+- [Naming](#naming)
+  - [trailingNumbers](#trailingnumbers)
+  - [duplicatedNames](#duplicatednames)
+  - [shapeNames](#shapenames)
+  - [namespaces](#namespaces)
+- [Topology](#topology)
+  - [triangles](#triangles)
+  - [ngons](#ngons)
+  - [openEdges](#openedges)
+  - [hardEdges](#hardedges)
+  - [lamina](#lamina)
+  - [zeroAreaFaces](#zeroareafaces)
+  - [zeroLengthEdges](#zerolengthedges)
+  - [noneManifoldEdges](#nonemanifoldedges)
+  - [starlike](#starlike)
+- [UVs](#uvs)
+  - [selfPenetratingUVs](#selfpenetratinguvs)
+  - [missingUVs](#missinguvs)
+  - [uvRange](#uvrange)
+  - [crossBorder](#crossborder)
+- [General](#general)
+  - [layers](#layers)
+  - [history](#history)
+  - [shaders](#shaders)
+  - [unfrozenTransforms](#unfrozentransforms)
+  - [uncenteredPivots](#uncenteredpivots)
+  - [parentGeometry](#parentgeometry)
+  - [emptyGroups](#emptygroups)
 - [Authors](#authors)
   - [License](#license)
 
-## Naming
+# Naming
 In order for the modelChecker to stay as unopiniated as possible it is limited in the number of naming checks
 
-### trailingNumbers
+## trailingNumbers
 Returns any nodes which name ends in a number.
 
-### duplicatedNames
+## duplicatedNames
 Returns any nodes which names are identical to other names in the scene.
 
 Note: It is important to know it checks your declared nodes against your scene.
 
-### shapeNames
+## shapeNames
 Returns shape names which are not named similar to the transform node + "Shape".
 
-### namespaces
-Returns nodes that are not part of the global name space
+## namespaces
+Returns nodes that are not part of the global name space.
 
-## Topology
+# Topology
+The topology checks has been mostly written with the artist in mind working for pre-rendered medium.
 
-### triangles
+## triangles
 
 Returns triangles associated with your declared nodes.
 
-### ngons
+## ngons
 
 Return ngons associated with your declared nodes.
-### openEdges
+## openEdges
 
 Returns the edges of a hole of your declared nodes.
 
-### hardEdges
+## hardEdges
 Returns edges whos normals are hard.
 
-### lamina
+## lamina
 Returns any faces that are lamina.
 
-### zeroAreaFaces
+## zeroAreaFaces
 
 Returns any faces who has zero area.
 
-### zeroLengthEdges
+## zeroLengthEdges
 
 Returns any edges faces who has zero area.
 
-### noneManifoldEdges
+## noneManifoldEdges
 
 Returns any edges who cannot be unfolded
 
-### starlike
+## starlike
 
 Returns any faces that are star like
 
-## UVs
-### selfPenetratingUVs
+# UVs
+## selfPenetratingUVs
 
-Returns all the UVs that overlaps it self.
+Returns all the UVs that penetrate/overlaps it self.
 
-### missingUVs
+## missingUVs
 
 Returns all the faces that are not associated with any UVs
-### uvRange
+## uvRange
 
 Returns any UVs that exists either in negative UV space or further than 10 in U (in other words; outside of the eligable UDIM space)
-### crossBorder
+## crossBorder
 
 Returns faces that exists across two UDIMs.
 
-## General
-### layers
+# General
+## layers
 Returns any nodes that are associated with Layers.
-### history
+## history
 Returns any nodes that has history associated with it.
-### shaders
+## shaders
 Returns any nodes that does not have the default lambert1 added.
 
-### unfrozenTransforms
+## unfrozenTransforms
 Returns nodes that whos transforms that are not frozen.
 
-### uncenteredPivots
+## uncenteredPivots
 Returns meshes that does not have their pivot point centered at 0,0,0 world space.
 
-### parentGeometry
+## parentGeometry
 Returns meshes that are parented under other geometry.
 
-### emptyGroups
+## emptyGroups
 Retuns any groups that has no children.
 
 # Authors
