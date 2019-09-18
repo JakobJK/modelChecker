@@ -1,3 +1,15 @@
+
+"""modelChecker v.0.1.0
+
+    Reliable production ready sanity checker for Autodesk Maya
+
+    Sanity check polygon models in Autodesk Maya, and prepare
+    your digital assets for a smooth sailing through the production pipeline.
+
+    Contact: jakobjk@gmail.com
+    https://github.com/JakobJK/modelChecker
+"""
+
 from PySide2 import QtCore, QtWidgets
 from shiboken2 import wrapInstance
 from functools import partial
