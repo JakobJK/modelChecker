@@ -103,7 +103,6 @@ class modelChecker(QtWidgets.QMainWindow):
                 'starlike_topology_0_0',
 
                 'selfPenetratingUVs_UVs_0_0',
-                'overlappingIslands_UVs_0_0',
                 'missingUVs_UVs_0_0',
                 'uvRange_UVs_0_0',
                 'crossBorder_UVs_0_0'
@@ -361,101 +360,13 @@ class modelChecker(QtWidgets.QMainWindow):
     def runFix(self, list, command):
         print ("yes")
 
+# the fix functions needs to go here eventually
+# Example:
+# def shapeNames_fix():
 
 
-##
-## Helper Functions
+# Naming checks
 
-
-
-
-#################################################################################################
-############################### Backend of the UI starts          ###############################
-#################################################################################################
-
-# The UI files to load if a definition doesn't exists for all functions
-# The is temporary functions to make the
-#
-
-def duplicatedNames(self, list):
-    print sys._getframe().f_code.co_name
-def trailingNumbers(self, list):
-    print sys._getframe().f_code.co_name
-def shapeNames(self, list):
-    print sys._getframe().f_code.co_name
-def namespaces(self, list):
-    print sys._getframe().f_code.co_name
-def layers(self, list):
-    print sys._getframe().f_code.co_name
-def history(self, list):
-    print sys._getframe().f_code.co_name
-def shaders(self, list):
-    print sys._getframe().f_code.co_name
-def unfrozenTransforms(self, list):
-    print sys._getframe().f_code.co_name
-def uncenteredPivots(self, list):
-    print sys._getframe().f_code.co_name
-def parentGeometry(self, list):
-    print sys._getframe().f_code.co_name
-def ngons(self, list):
-    print sys._getframe().f_code.co_name
-def triangles(self, list):
-    print sys._getframe().f_code.co_name
-def emptyGroups(self, list):
-    print sys._getframe().f_code.co_name
-def hardEdges(self, list):
-    print sys._getframe().f_code.co_name
-def noneQuads(self, list):
-    print sys._getframe().f_code.co_name
-def openEdges(self, list):
-    print sys._getframe().f_code.co_name
-def ButterflyGeometry(self, list):
-    print sys._getframe().f_code.co_name
-def selfPenetratingUVs(self, list):
-    print sys._getframe().f_code.co_name
-def overlappingIslands(self, list):
-    print sys._getframe().f_code.co_name
-def uvRange(self, list):
-    print sys._getframe().f_code.co_name
-def crossBorder(self, list):
-    print sys._getframe().f_code.co_name
-def zeroAreaFaces(self, list):
-    print sys._getframe().f_code.co_name
-def zeroLengthEdges(self, list):
-    print sys._getframe().f_code.co_name
-def missingUVs(self, list):
-    print sys._getframe().f_code.co_name
-def lamina(self, list):
-    print sys._getframe().f_code.co_name
-
-
-#    These definitions are temp.
-#    If they're not here the UI won't run.
-
-
-def shapeNames_fix():
-    print sys._getframe().f_code.co_name
-def namespaces_fix():
-    print sys._getframe().f_code.co_name
-def layers_fix():
-    print sys._getframe().f_code.co_name
-def history_fix():
-    print sys._getframe().f_code.co_name
-def shaders_fix():
-    print sys._getframe().f_code.co_name
-def unfrozenTransforms_fix():
-    print sys._getframe().f_code.co_name
-def uncenteredPivots_fix():
-    print sys._getframe().f_code.co_name
-def emptyGroups_fix():
-    print sys._getframe().f_code.co_name
-def softenEdge_fix():
-    print sys._getframe().f_code.co_name
-
-
-#
-# This is the Naming checks
-#
 def trailingNumbers(self, list):
     numbers = ['0','1','2','3','4','5','6','7','8','9']
     trailingNumbers = []
@@ -489,7 +400,7 @@ def shapeNames(self, list):
                 shapeNames.append(obj)
     return shapeNames
 
-# This is the Topology checks
+# Topology checks
 
 
 def triangles(self, list):
@@ -675,6 +586,8 @@ def starlike(self, list):
         selIt.next()
     return starlike
 
+#UV checks
+
 def missingUVs(self, list):
     missingUVs = []
     selIt = om.MItSelectionList(self.SLMesh)
@@ -743,7 +656,8 @@ def crossBorder(self, list):
     	    faceIt.next(None)
     	selIt.next()
     return crossBorder
-# This is the general checks
+
+# General checks
 
 def unfrozenTransforms(self, list):
     unfrozenTransforms = []
