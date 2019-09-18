@@ -66,7 +66,8 @@ Important! Your current selection will have prioirtiy over the top node defined 
   - [parentGeometry](#parentgeometry)
   - [emptyGroups](#emptygroups)
 - [Authors](#authors)
-  - [License](#license)
+- [Support & Feedback](#support--feedback)
+- [License](#license)
 
 # Naming
 In order for the modelChecker to stay as unopiniated as possible it is limited in the number of naming checks
@@ -158,12 +159,15 @@ Retuns any groups that has no children.
 
 # Authors
 
-[**Jakob Kousholt**](https://www.linkedin.com/in/jakejk/) - Freelance Creature Modeller
+- [**Jakob Kousholt**](https://www.linkedin.com/in/jakejk/) - Freelance Creature Modeller
+- [**Niels Peter Kaagaard**](https://www.linkedin.com/in/niels-peter-kaagaard-146b8a13) - Modeller at Weta Digital
 
-[**Niels Peter Kaagaard**](https://www.linkedin.com/in/niels-peter-kaagaard-146b8a13) - Modeller at Weta Digital
 
----
+# Support & Feedback
 
-## License
+For any bugs, errors, and requests feel free to reach out to [Jake](mailto:jakobjk@gmail.com)
 
+If you want to support us, feel free to "buy" the modelChecker from [Gumroad](https://gumroad.com/l/PGuOu).
+
+# License
 modelChecker is licensed under the [MIT](https://rem.mit-license.org/) License.
