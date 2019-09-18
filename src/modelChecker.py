@@ -106,7 +106,7 @@ class modelChecker(QtWidgets.QMainWindow):
                 'selfPenetratingUVs_UVs_0_0',
                 'overlappingIslands_UVs_0_0',
                 'missingUVs_UVs_0_0',
-                'udimRange_UVs_0_0',
+                'uvRange_UVs_0_0',
                 'crossBorder_UVs_0_0'
                 ]
 
@@ -418,7 +418,7 @@ def selfPenetratingUVs(self, list):
     print sys._getframe().f_code.co_name
 def overlappingIslands(self, list):
     print sys._getframe().f_code.co_name
-def udimRange(self, list):
+def uvRange(self, list):
     print sys._getframe().f_code.co_name
 def crossBorder(self, list):
     print sys._getframe().f_code.co_name
@@ -691,6 +691,29 @@ def missingUVs(self, list):
     	selIt.next()
     return missingUVs
 
+
+def uvRange(self, list):
+    uvRange = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+    	faceIt = om.MItMeshPolygon(selIt.getDagPath())
+    	objectName = selIt.getDagPath().getPath()
+    	while not faceIt.isDone():
+            UVs = faceIt.getUVs()
+            for index, eachUVs in enumerate(UVs):
+                if index == 0:
+                    for eachUV in eachUVs:
+                        if eachUV < 0 or eachUV > 10:
+                            print "penis"
+                if index == 1:
+                    for eachUV in eachUVs:
+                        if eachUV < 0:
+                            componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                            uvRange.append(componentName)
+                            break
+    	    faceIt.next(None)
+    	selIt.next()
+    return uvRange
 # This is the general checks
 
 def unfrozenTransforms(self, list):
