@@ -95,6 +95,7 @@ class modelChecker(QtWidgets.QMainWindow):
                 'triangles_topology_0_0',
                 'ngons_topology_0_0',
                 'openEdges_topology_0_0',
+                'poles_topology_0_0',
                 'hardEdges_topology_0_0',
                 'lamina_topology_0_0',
                 'zeroAreaFaces_topology_0_0',
@@ -641,6 +642,23 @@ def openEdges(self, list):
             edgeIt.next()
         selIt.next()
     return openEdges
+
+def poles(self, list):
+    poles = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+        vertexIt = om.MItMeshVertex(selIt.getDagPath())
+        objectName = selIt.getDagPath().getPath()
+        while not vertexIt.isDone():
+            if vertexIt.numConnectedEdges() > 5:
+                vertexIndex = vertexIt.index()
+                componentName = str(objectName) + '.vtx[' + str(vertexIndex) + ']'
+                poles.append(componentName)
+            else:
+                pass
+            vertexIt.next()
+        selIt.next()
+    return poles
 
 def starlike(self, list):
     starlike = []
