@@ -86,7 +86,6 @@ class modelChecker(QtWidgets.QMainWindow):
                 'layers_general_1_1',
                 'history_general_1_1',
                 'shaders_general_1_1',
-                'multipleShapes_general_1_0',
                 'unfrozenTransforms_general_1_0',
                 'uncenteredPivots_general_1_0',
                 'parentGeometry_general_1_0',
@@ -392,8 +391,6 @@ def history(self, list):
     print sys._getframe().f_code.co_name
 def shaders(self, list):
     print sys._getframe().f_code.co_name
-def multipleShapes(self, list):
-    print sys._getframe().f_code.co_name
 def unfrozenTransforms(self, list):
     print sys._getframe().f_code.co_name
 def uncenteredPivots(self, list):
@@ -592,9 +589,10 @@ def zeroLengthEdges(self, list):
     	edgeIt = om.MItMeshEdge(selIt.getDagPath())
     	objectName = selIt.getDagPath().getPath()
     	while not edgeIt.isDone():
-    	    edgeLength = edgeIt.getLength()
-    	    print(edgeLength)
-    	    edgeIt.next(None)
+    	    if edgeIt.length() < 0.00000001:
+    	        componentName = str(objectName) + '.f[' + str(edgeIt.index()) + ']'
+    	        zeroLengthEdges.append(componentName)
+    	    edgeIt.next()
     	selIt.next()
     return zeroLengthEdges
 
@@ -704,7 +702,9 @@ def uvRange(self, list):
                 if index == 0:
                     for eachUV in eachUVs:
                         if eachUV < 0 or eachUV > 10:
-                            print "penis"
+                            componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                            uvRange.append(componentName)
+                            break
                 if index == 1:
                     for eachUV in eachUVs:
                         if eachUV < 0:
@@ -714,6 +714,35 @@ def uvRange(self, list):
     	    faceIt.next(None)
     	selIt.next()
     return uvRange
+
+def crossBorder(self, list):
+    crossBorder = []
+    selIt = om.MItSelectionList(self.SLMesh)
+    while not selIt.isDone():
+    	faceIt = om.MItMeshPolygon(selIt.getDagPath())
+    	objectName = selIt.getDagPath().getPath()
+    	while not faceIt.isDone():
+            U = None
+            V = None
+            UVs = faceIt.getUVs()
+            for index, eachUVs in enumerate(UVs):
+                if index == 0:
+                    for eachUV in eachUVs:
+                        if U == None:
+                            U = int(eachUV)
+                        if U != int(eachUV):
+                            componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                            crossBorder.append(componentName)
+                if index == 1:
+                    for eachUV in eachUVs:
+                        if V == None:
+                            V = int(eachUV)
+                        if V != int(eachUV):
+                            componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                            crossBorder.append(componentName)
+    	    faceIt.next(None)
+    	selIt.next()
+    return crossBorder
 # This is the general checks
 
 def unfrozenTransforms(self, list):
