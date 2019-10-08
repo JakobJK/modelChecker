@@ -1,0 +1,160 @@
+
+body {
+  color: #AAA;
+  font-family: 'PT Sans', sans-serif;
+  background: #24252A;
+  margin: 0px;
+}
+
+a {
+  color: #AAA;
+}
+
+
+a:hover {
+  color: #EEE;
+  text-decoration: underline;
+}
+nav {
+  background-color: #222429;
+  padding: 15px;
+  display: flex;
+  margin-bottom: 10px;
+  justify-content: space-around;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+nav li {
+  display: inline-block;
+  padding: 0px 20px 0px 20px;
+  text-align: center;
+}
+
+
+nav ul {
+  padding: 0;
+  margin: 0;
+}
+
+.wrap {
+  margin: 0 auto;
+  min-width: 500px;
+  max-width: 1200px;
+  width: 75%;
+}
+.commands {
+  background-color: #1F2026;
+  border-radius: 3px;
+  padding: 15px;
+}
+.category {
+  margin: 0px;
+  padding: 0px;
+  padding-top: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.command {
+  cursor: pointer;
+  padding:0px;
+  margin:0px;
+  margin-left: 30px;
+}
+
+.description {
+  margin: 15px 50px 15px 50px;
+}
+
+.splash {
+  width: 80%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-content: space-around;
+}
+
+.column {
+  padding: 30px;
+}
+
+.howTo {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin: 0 auto;
+  grid-gap: 1px;
+  background: #24252A;
+}
+
+.instruction {
+  padding: 5px;
+  background-color: #222429;
+}
+
+.instruction h2 {
+  padding-left: 3vw;
+}
+
+.lButton {
+  padding: 15px 25px 15px 25px;
+  display: inline-block;
+  width: 100px;
+  margin: 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lButton:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #222429;
+}
+
+a {
+  color: #AAA;
+}
+
+.documentation {
+  width: 75%;
+  margin: 0 auto;
+}
+
+.categoryHeadline {
+ padding: 0px;
+ margin: 0px;
+}
+.commandHeadline {
+  padding: 0px 0px 0px 4vw;
+  margin: 0px;
+}
+
+.commandHeadline:hover {
+  cursor: pointer;
+  color: #FFF;
+}
+
+.commandDiv {
+  padding: 0px 0px 0px 6vw;
+}
+
+footer {
+  width: 100%;
+  text-align: center;
+  margin: 0 auto;
+  color: #555;
+  padding: 25px;
+}
+
+.codeBlock {
+  background-color: #1B1D22;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 3px;
+  font-size: 0.9rem;
+}
+
+.instruction p {
+  padding: 10px;
+  margin: 10px;
+}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://gumroad.com/js/gumroad.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" class="href">
+  <title>modelChecker - Home</title>
+</head>
+
+<body>
+  <main>
+    <nav>
+      <div><a href="https://modelChecker.jake.io">modelChecker</a></div>
+      <div>
+        <ul>
+          <li class="link"><a href="./index.html">Home</a></li>
+          <li class="link"><a href="./gettingstarted.html">Getting Started</a></li>
+          <li class="link"><a href="./documentation.html">Documentation</a></li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li>v0.1.0</li>
+          <li>Github</li>
+        </ul>
+      </div>
+    </nav>
+    <div class="splash">
+      <div class="column">
+        <h1>
+          modelChecker
+        </h1>
+        <p>
+          Reliable production ready sanity checker for Autodesk Maya
+        </p>
+        <p>
+          Sanity check polygon models in Autodesk Maya, and prepare your digital assets for a smooth sailing through the
+          production pipeline.
+        </p>
+        <p>
+          The modelChecker is free and always will be.
+        </p>
+
+        <Link to="/documentation">
+        <a href="gettingstarted.html" class="lButton">Get started</a>
+        </Link>
+        <a href="#">
+          <a class="gumroad-button" href="https://gum.co/htZYj">Download</a>
+        </a>
+      </div>
+      <div class="column">
+        <img
+          src="https://camo.githubusercontent.com/b570d7664bd14d2a53afc1286610379f43ea7864/68747470733a2f2f692e696d6775722e636f6d2f315051723153352e6a7067"
+          alt="" class="src" />
+      </div>
+    </div>
+    <div class="howTo">
+      <div class="instruction">
+        <h2>
+          Installation
+        </h2>
+        <p>Place the modelChecker.py file in your maya scripts directory and create a python shell button with the
+          following code:</p>
+
+        <div class="codeBlock">
+
+          <span style="color: #BB7BD7">import modelChecker</span><br><br>
+
+          <span style="color: #BB7BD7">try</span>:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;md_win.close()<br>
+          <span style="color: #BB7BD7">except</span>:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp; <span style="color: #BB7BD7">pass</span><br>
+          md_win <span style="color: #BB7BD7">=</span>
+          modelChecker.modelChecker(<span style="color: #D36A2B">parent</span><span
+            style="color: #BB7BD7">=</span>modelChecker.getMainWindow())<br>
+          md_win.show()<br>
+          md_win.raise_()
+
+        </div>
+      </div>
+      <div class="instruction">
+        <h2>
+          Usage
+        </h2>
+      </div>
+      <div class="instruction">
+        <h2>
+          Extend
+        </h2>
+      </div>
+    </div>
+    <footer>
+      Copyright Jake
+    </footer>
+  </main>
+</body>
+
+</html>

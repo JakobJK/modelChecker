@@ -396,7 +396,7 @@ def getMainWindow():
 class modelChecker(QtWidgets.QMainWindow):
 
     def __init__(self, parent=getMainWindow()):
-        super(modelChecker, self).__init__(parent)
+        super(modelChecker, self).__init__(parent, QtCore.Qt.WindowStaysOnTopHint)
 
         # Creates object, Title Name and Adds a QtWidget as our central widget/Main Layout
         self.setObjectName("modelCheckerUI")
