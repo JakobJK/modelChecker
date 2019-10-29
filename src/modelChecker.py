@@ -1,11 +1,7 @@
-
 """modelChecker v.0.1.0
-
     Reliable production ready sanity checker for Autodesk Maya
-
     Sanity check polygon models in Autodesk Maya, and prepare
     your digital assets for a smooth sailing through the production pipeline.
-
     Contact: jakobjk@gmail.com
     https://github.com/JakobJK/modelChecker
 """
@@ -139,8 +135,8 @@ def zeroAreaFaces(self, list):
     	faceIt = om.MItMeshPolygon(selIt.getDagPath())
     	objectName = selIt.getDagPath().getPath()
     	while not faceIt.isDone():
-    	    faceArea = faceIt.zeroArea()
-    	    if faceArea == True:
+    	    faceArea = faceIt.getArea()
+    	    if faceArea < 0.000001:
     	        faceIndex = faceIt.index()
     	        componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
     	        zeroAreaFaces.append(componentName)
