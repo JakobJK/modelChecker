@@ -1,6 +1,6 @@
 # modelChecker
 
-modelChecker is a tool written for Autodesk Maya to sanity check digital polygon models for production. It aims to be as unopinionated as possible, and only make modification to what you specifically tell it to. modelChecker is written in Python 2.6 and PySide. It gives you concise feedback, and let's you select your error nodes easily.
+modelChecker is a tool written for Autodesk Maya to sanity check digital polygon models for production. It aims to be as unopinionated as possible, It gives you concise feedback, and let's you select your error nodes easily.
 
 ![modelChecker](https://i.imgur.com/1PQr1S5.jpg)
 
@@ -20,7 +20,7 @@ md_win.show()
 md_win.raise_()
 ```
 
-# Usage
+## Usage
 
 There are three ways to run the checks.
 
@@ -32,142 +32,170 @@ The documentation will refer to the nodes you are running checks on as your "dec
 
 Important! Your current selection will have prioirtiy over the top node defined in the UI. The reason is to be able to quickly debug errror nodes.
 
-# Documentation
-- [modelChecker](#modelchecker)
-  - [Setup](#setup)
-- [Usage](#usage)
-- [Documentation](#documentation)
-- [Naming](#naming)
-  - [trailingNumbers](#trailingnumbers)
-  - [duplicatedNames](#duplicatednames)
-  - [shapeNames](#shapenames)
-  - [namespaces](#namespaces)
-- [Topology](#topology)
-  - [triangles](#triangles)
-  - [ngons](#ngons)
-  - [openEdges](#openedges)
-  - [hardEdges](#hardedges)
-  - [lamina](#lamina)
-  - [zeroAreaFaces](#zeroareafaces)
-  - [zeroLengthEdges](#zerolengthedges)
-  - [noneManifoldEdges](#nonemanifoldedges)
-  - [starlike](#starlike)
-- [UVs](#uvs)
-  - [selfPenetratingUVs](#selfpenetratinguvs)
-  - [missingUVs](#missinguvs)
-  - [uvRange](#uvrange)
-  - [crossBorder](#crossborder)
-- [General](#general)
-  - [layers](#layers)
-  - [history](#history)
-  - [shaders](#shaders)
-  - [unfrozenTransforms](#unfrozentransforms)
-  - [uncenteredPivots](#uncenteredpivots)
-  - [parentGeometry](#parentgeometry)
-  - [emptyGroups](#emptygroups)
-- [Authors](#authors)
-- [Support & Feedback](#support--feedback)
-- [License](#license)
+## Checks
 
-# Naming
-In order for the modelChecker to stay as unopiniated as possible it is limited in the number of naming checks
+Here is an extensive lists of all of the checks the modelChecker can make on your 3d models. Passing all checks does not inherently make for a good model. Understand what is required for your production will.
 
-## trailingNumbers
-Returns any nodes which name ends in a number.
+## Naming
 
-## duplicatedNames
-Returns any nodes which names are identical to other names in the scene.
+<details>
+<summary>duplicatedNames</summary>
+<p>
+  Returns any node within the hierachy that is not uniquely named
+</p>
+</details>
 
-Note: It is important to know it checks your declared nodes against your scene.
+<details>
+<summary>shapeNames</summary>
+<p>
+  Returns shape nodes which does not follow the naming convention of transformNode+"Shape"</p>
+  </details>
 
-## shapeNames
-Returns shape names which are not named similar to the transform node + "Shape".
+<details>
+<summary>namespaces</summary>
+<p>
+  Returns nodes that are not in the global name space</p>
+  </details>
 
-## namespaces
-Returns nodes that are not part of the global name space.
+## Topology
 
-# Topology
-The topology checks has been mostly written with the artist in mind working for pre-rendered medium.
+<details>
+<summary>triangles</summary>
 
-## triangles
+<p>Will return a list of traingles</p>
+</details>
+<details>
+<summary>ngons</summary>
+<p>
+Will return a list of Ngons
+</p>
+</details>
+<details>
+<summary>openEdges</summary>
+<p>
+Will return any Edge that is connected to onyl one face
+</p>
+</details>
+<details>
+<summary>hardEdges</summary>
+<p>
+Will return any edges that does not have softened normals
+</p>
+</details>
+<details>
+<summary>lamina</summary>
+<p>
+  Returns lamina faces
+</p>
+</details>
+<details>
+  <summary>zeroAreaFaces</summary>
+  <p>
+    Returns
+  </p>
+</details>
+<details>
+<summary>zeroLengthEdges</summary>
+<p>
+Returns edges which has a length less than 0.000001 units
+</p>
+</details>
+<details>
+<summary>noneManifoldEdges</summary>
+</details>
+<details>
+<summary>starlike</summary>
+</details>
 
-Returns triangles associated with your declared nodes.
+## UVs
 
-## ngons
+<details>
+<summary>selfPenetratingUVs</summary>
+</details>
+<details>
+<summary>missingUVs</summary>
+<p>
+Returns any polygon object that does have UVs
+</p>
+</details>
+<details>
+<summary>uvRange</summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
+<details>
+<summary>crossBorder</summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
 
-Return ngons associated with your declared nodes.
-## openEdges
+## General
 
-Returns the edges of a hole of your declared nodes.
+<details>
+<summary>layers </summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
+<details>
+<summary>history</summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
+<details>
+<summary>shaders</summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
+<details>
+<summary>unfrozenTransforms</summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
+<details>
+<summary>uncenteredPivots</summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
+<details>
+<summary>parentGeometry</summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
+<details>
+<summary>emptyGroups</summary>
+    + markdown list 1
+        + nested list 1
+        + nested list 2
+    + markdown list 2
+</details>
 
-## hardEdges
-Returns edges whos normals are hard.
+## Authors
 
-## lamina
-Returns any faces that are lamina.
+- [**Jakob Kousholt**](https://www.linkedin.com/in/jakejk/) - Software Engineer / Freelance Creature Modeler
+- [**Niels Peter Kaagaard**](https://www.linkedin.com/in/niels-peter-kaagaard-146b8a13) - Modeler at Weta Digital
 
-## zeroAreaFaces
-
-Returns any faces who has zero area.
-
-## zeroLengthEdges
-
-Returns any edges faces who has zero area.
-
-## noneManifoldEdges
-
-Returns any edges who cannot be unfolded
-
-## starlike
-
-Returns any faces that are star like
-
-# UVs
-## selfPenetratingUVs
-
-Returns all the UVs that penetrate/overlaps it self.
-
-## missingUVs
-
-Returns all the faces that are not associated with any UVs
-## uvRange
-
-Returns any UVs that exists either in negative UV space or further than 10 in U (in other words; outside of the eligable UDIM space)
-## crossBorder
-
-Returns faces that exists across two UDIMs.
-
-# General
-## layers
-Returns any nodes that are associated with Layers.
-## history
-Returns any nodes that has history associated with it.
-## shaders
-Returns any nodes that does not have the default lambert1 added.
-
-## unfrozenTransforms
-Returns nodes that whos transforms that are not frozen.
-
-## uncenteredPivots
-Returns meshes that does not have their pivot point centered at 0,0,0 world space.
-
-## parentGeometry
-Returns meshes that are parented under other geometry.
-
-## emptyGroups
-Retuns any groups that has no children.
-
-# Authors
-
-- [**Jakob Kousholt**](https://www.linkedin.com/in/jakejk/) - Freelance Creature Modeller
-- [**Niels Peter Kaagaard**](https://www.linkedin.com/in/niels-peter-kaagaard-146b8a13) - Modeller at Weta Digital
-
-
-# Support & Feedback
+## Support & Feedback
 
 For any bugs, errors, and requests feel free to reach out to [Jake](mailto:jakobjk@gmail.com)
 
 If you want to support us, feel free to "buy" the modelChecker from [Gumroad](https://gumroad.com/l/PGuOu).
 
-# License
+## License
+
 modelChecker is licensed under the [MIT](https://rem.mit-license.org/) License.
