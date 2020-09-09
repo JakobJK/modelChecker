@@ -33,15 +33,15 @@ class modelCheckerUI(QtWidgets.QMainWindow):
     qmw_instance = None
 
     @classmethod
-    def show_UI(self):
-        if not self.qmw_instance:
-            self.qmw_instance = modelCheckerUI()
+    def show_UI(cls):
+        if not cls.qmw_instance:
+            cls.qmw_instance = modelCheckerUI()
 
-        if self.qmw_instance.isHidden():
-            self.qmw_instance.show()
+        if cls.qmw_instance.isHidden():
+            cls.qmw_instance.show()
         else:
-            self.qmw_instance.raise_()
-            self.qmw_instance.activateWindow()
+            cls.qmw_instance.raise_()
+            cls.qmw_instance.activateWindow()
 
     def __init__(self, parent=getMainWindow()):
         super(modelCheckerUI, self).__init__(
