@@ -6,18 +6,12 @@ modelChecker is a tool written for Autodesk Maya to sanity check digital polygon
 
 ## Setup
 
-Place the modelChecker.py file in your maya scripts directory and create a python shell button with the following code:
+Place the modelChecker files in your maya scripts directory and create a python shell button with the following code:
 
 ```python
-import modelChecker
+from modelChecker_UI import modelCheckerUI
 
-try:
-    md_win.close()
-except:
-    pass
-md_win = modelChecker.modelChecker(parent=modelChecker.getMainWindow())
-md_win.show()
-md_win.raise_()
+modelCheckerUI.show_UI()
 ```
 
 ## Usage
