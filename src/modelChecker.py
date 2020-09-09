@@ -1,13 +1,21 @@
-def trailingNumbers(list):
+
+import maya.cmds as cmds
+import maya.api.OpenMaya as om
+
+version = int(cmds.about(version=True))
+
+
+def trailingNumbers(list, SLMesh):
     numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     trailingNumbers = []
+    print('This is the list being passed in:{0}'.format(list))
     for obj in list:
         if obj[len(obj)-1] in numbers:
             trailingNumbers.append(obj)
     return trailingNumbers
 
 
-def duplicatedNames(list):
+def duplicatedNames(list, SLMesh):
     duplicatedNames = []
     for item in list:
         if '|' in item:
@@ -15,7 +23,7 @@ def duplicatedNames(list):
     return duplicatedNames
 
 
-def namespaces(list):
+def namespaces(list, SLMesh):
     namespaces = []
     for obj in list:
         if ':' in obj:
@@ -23,7 +31,7 @@ def namespaces(list):
     return namespaces
 
 
-def shapeNames(list):
+def shapeNames(list, SLMesh):
     shapeNames = []
     for obj in list:
         new = obj.split('|')
@@ -37,9 +45,9 @@ def shapeNames(list):
 # Topology checks
 
 
-def triangles(list):
+def triangles(list, SLMesh):
     triangles = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -59,9 +67,9 @@ def triangles(list):
     return triangles
 
 
-def ngons(self, list):
+def ngons(list, SLMesh):
     ngons = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -81,9 +89,9 @@ def ngons(self, list):
     return ngons
 
 
-def hardEdges(self, list):
+def hardEdges(list, SLMesh):
     hardEdges = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -99,8 +107,8 @@ def hardEdges(self, list):
     return hardEdges
 
 
-def lamina(self, list):
-    selIt = om.MItSelectionList(self.SLMesh)
+def lamina(list, SLMesh):
+    selIt = om.MItSelectionList(SLMesh)
     lamina = []
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
@@ -121,9 +129,9 @@ def lamina(self, list):
     return lamina
 
 
-def zeroAreaFaces(self, list):
+def zeroAreaFaces(list, SLMesh):
     zeroAreaFaces = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -143,9 +151,9 @@ def zeroAreaFaces(self, list):
     return zeroAreaFaces
 
 
-def zeroLengthEdges(self, list):
+def zeroLengthEdges(list, SLMesh):
     zeroLengthEdges = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -159,7 +167,7 @@ def zeroLengthEdges(self, list):
     return zeroLengthEdges
 
 
-def selfPenetratingUVs(self, list):
+def selfPenetratingUVs(list, SLMesh):
     selfPenetratingUVs = []
     for obj in list:
         shape = cmds.listRelatives(obj, shapes=True, fullPath=True)
@@ -172,9 +180,9 @@ def selfPenetratingUVs(self, list):
     return selfPenetratingUVs
 
 
-def noneManifoldEdges(self, list):
+def noneManifoldEdges(list, SLMesh):
     noneManifoldEdges = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -190,9 +198,9 @@ def noneManifoldEdges(self, list):
     return noneManifoldEdges
 
 
-def openEdges(self, list):
+def openEdges(list, SLMesh):
     openEdges = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -208,9 +216,9 @@ def openEdges(self, list):
     return openEdges
 
 
-def poles(self, list):
+def poles(list, SLMesh):
     poles = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         vertexIt = om.MItMeshVertex(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -227,9 +235,9 @@ def poles(self, list):
     return poles
 
 
-def starlike(self, list):
+def starlike(list, SLMesh):
     starlike = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         polyIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -251,9 +259,9 @@ def starlike(self, list):
 # UV checks
 
 
-def missingUVs(self, list):
+def missingUVs(list, SLMesh):
     missingUVs = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -270,9 +278,9 @@ def missingUVs(self, list):
     return missingUVs
 
 
-def uvRange(self, list):
+def uvRange(list, SLMesh):
     uvRange = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -301,9 +309,9 @@ def uvRange(self, list):
     return uvRange
 
 
-def crossBorder(self, list):
+def crossBorder(list, SLMesh):
     crossBorder = []
-    selIt = om.MItSelectionList(self.SLMesh)
+    selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
@@ -338,7 +346,7 @@ def crossBorder(self, list):
 # General checks
 
 
-def unfrozenTransforms(self, list):
+def unfrozenTransforms(list, SLMesh):
     unfrozenTransforms = []
     for obj in list:
         translation = cmds.xform(
@@ -350,7 +358,7 @@ def unfrozenTransforms(self, list):
     return unfrozenTransforms
 
 
-def layers(self, list):
+def layers(list, SLMesh):
     layers = []
     for obj in list:
         layer = cmds.listConnections(obj, type="displayLayer")
@@ -359,7 +367,7 @@ def layers(self, list):
     return layers
 
 
-def shaders(self, list):
+def shaders(list, SLMesh):
     shaders = []
     for obj in list:
         shadingGrps = None
@@ -372,7 +380,7 @@ def shaders(self, list):
     return shaders
 
 
-def history(self, list):
+def history(list, SLMesh):
     history = []
     for obj in list:
         shape = cmds.listRelatives(obj, shapes=True, fullPath=True)
@@ -384,7 +392,7 @@ def history(self, list):
     return history
 
 
-def uncenteredPivots(self, list):
+def uncenteredPivots(list, SLMesh):
     uncenteredPivots = []
     for obj in list:
         if cmds.xform(obj, q=1, ws=1, rp=1) != [0, 0, 0]:
@@ -392,7 +400,7 @@ def uncenteredPivots(self, list):
     return uncenteredPivots
 
 
-def emptyGroups(self, list):
+def emptyGroups(list, SLMesh):
     emptyGroups = []
     for obj in list:
         children = cmds.listRelatives(obj, ad=True)
@@ -401,7 +409,7 @@ def emptyGroups(self, list):
     return emptyGroups
 
 
-def parentGeometry(self, list):
+def parentGeometry(list, SLMesh):
     parentGeometry = []
     shapeNode = False
     for obj in list:

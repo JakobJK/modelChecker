@@ -14,8 +14,7 @@ import sys
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
-
-version = int(cmds.about(version=True))
+import modelChecker
 
 
 # the fix functions needs to go here eventually
@@ -29,10 +28,23 @@ def getMainWindow():
     return mainWindow
 
 
-class modelChecker(QtWidgets.QMainWindow):
+class modelCheckerUI(QtWidgets.QMainWindow):
+
+    qmw_instance = None
+
+    @classmethod
+    def show_UI(self):
+        if not self.qmw_instance:
+            self.qmw_instance = modelCheckerUI()
+
+        if self.qmw_instance.isHidden():
+            self.qmw_instance.show()
+        else:
+            self.qmw_instance.raise_()
+            self.qmw_instance.activateWindow()
 
     def __init__(self, parent=getMainWindow()):
-        super(modelChecker, self).__init__(
+        super(modelCheckerUI, self).__init__(
             parent, QtCore.Qt.WindowStaysOnTopHint)
 
         # Creates object, Title Name and Adds a QtWidget as our central widget/Main Layout
@@ -201,7 +213,7 @@ class modelChecker(QtWidgets.QMainWindow):
             self.commandRunButton[name].setMaximumWidth(30)
 
             self.commandRunButton[name].clicked.connect(
-                partial(self.commandToRun, [eval(name)]))
+                partial(self.commandToRun, [name]))
 
             self.errorNodesButton[name] = QtWidgets.QPushButton(
                 "Select Error Nodes")
@@ -346,26 +358,28 @@ class modelChecker(QtWidgets.QMainWindow):
         else:
             for command in commands:
                 # For Each node in filterNodes, run command.
-                self.errorNodes = command(self, nodes)
+                print(nodes)
+                self.errorNodes = getattr(
+                    modelChecker, command)(nodes, self.SLMesh)
                 # Return error nodes
                 if self.errorNodes:
                     self.reportOutputUI.insertPlainText(
-                        command.func_name + " -- FAILED\n")
+                        command + " -- FAILED\n")
                     for obj in self.errorNodes:
                         self.reportOutputUI.insertPlainText(
                             "    " + obj + "\n")
 
-                    self.errorNodesButton[command.func_name].setEnabled(True)
-                    self.errorNodesButton[command.func_name].clicked.connect(
+                    self.errorNodesButton[command].setEnabled(True)
+                    self.errorNodesButton[command].clicked.connect(
                         partial(self.selectErrorNodes, self.errorNodes))
-                    self.commandLabel[command.func_name].setStyleSheet(
+                    self.commandLabel[command].setStyleSheet(
                         "background-color: #664444;")
                 else:
-                    self.commandLabel[command.func_name].setStyleSheet(
+                    self.commandLabel[command].setStyleSheet(
                         "background-color: #446644;")
                     self.reportOutputUI.insertPlainText(
-                        command.func_name + " -- SUCCES\n")
-                    self.errorNodesButton[command.func_name].setEnabled(False)
+                        command + " -- SUCCES\n")
+                    self.errorNodesButton[command].setEnabled(False)
 
     # Write the report to report UI.
     def sanityCheck(self):
@@ -374,8 +388,10 @@ class modelChecker(QtWidgets.QMainWindow):
         for obj in self.list:
             new = obj.split('_')
             name = new[0]
+            print('this is the new name:{0}'.format(
+                getattr(modelChecker, name)))
             if self.commandCheckBox[name].isChecked():
-                checkedCommands.append(eval(name))
+                checkedCommands.append(name)
             else:
                 self.commandLabel[name].setStyleSheet(
                     "background-color: none;")
@@ -397,6 +413,6 @@ if __name__ == '__main__':
         win.close()
     except:
         pass
-    win = modelChecker(parent=getMainWindow())
+    win = modelCheckerUI(parent=getMainWindow())
     win.show()
     win.raise_()
