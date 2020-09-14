@@ -8,7 +8,6 @@ version = int(cmds.about(version=True))
 def trailingNumbers(list, SLMesh):
     numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     trailingNumbers = []
-    print('This is the list being passed in:{0}'.format(list))
     for obj in list:
         if obj[len(obj)-1] in numbers:
             trailingNumbers.append(obj)

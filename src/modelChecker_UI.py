@@ -358,7 +358,6 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         else:
             for command in commands:
                 # For Each node in filterNodes, run command.
-                print(nodes)
                 self.errorNodes = getattr(
                     modelChecker, command)(nodes, self.SLMesh)
                 # Return error nodes
@@ -388,8 +387,6 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         for obj in self.list:
             new = obj.split('_')
             name = new[0]
-            print('this is the new name:{0}'.format(
-                getattr(modelChecker, name)))
             if self.commandCheckBox[name].isChecked():
                 checkedCommands.append(name)
             else:
