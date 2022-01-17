@@ -12,8 +12,8 @@ from functools import partial
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
-import modelCheckerCommands
-import modelCheckerLists as mcl
+import modelChecker_commands as mcc
+import modelChecker_list as mcl
 
 
 def getMainWindow():
@@ -151,6 +151,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
             self.command[name] = name
             self.commandLabel[name] = QtWidgets.QLabel(label)
             self.commandLabel[name].setMinimumWidth(120)
+            self.commandLabel[name].setStyleSheet("padding: 2px;")
             self.commandCheckBox[name] = QtWidgets.QCheckBox()
 
             self.commandCheckBox[name].setChecked(check)
@@ -293,7 +294,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
                 command = currentCommand['func']
                 label = currentCommand['label']
                 self.errorNodes = getattr(
-                    modelCheckerCommands, command)(nodes, self.SLMesh)
+                    mcc, command)(nodes, self.SLMesh)
                 # Return error nodes
                 if self.errorNodes:
                     self.reportOutputUI.insertHtml(
@@ -306,10 +307,10 @@ class modelCheckerUI(QtWidgets.QMainWindow):
                     self.errorNodesButton[command].clicked.connect(
                         partial(self.selectErrorNodes, self.errorNodes))
                     self.commandLabel[command].setStyleSheet(
-                        "background-color: #664444;")
+                        "background-color: #664444; padding: 2px;")
                 else:
                     self.commandLabel[command].setStyleSheet(
-                        "background-color: #446644;")
+                        "background-color: #446644; padding: 2px;")
                     self.reportOutputUI.insertHtml(
                         label + " -- <font color='#669966'>SUCCESS</font><br>")
                     self.errorNodesButton[command].setEnabled(False)
@@ -324,7 +325,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
                 checkedCommands.append(obj)
             else:
                 self.commandLabel[name].setStyleSheet(
-                    "background-color: none;")
+                    "background-color: none; padding: 2px;")
                 self.errorNodesButton[name].setEnabled(False)
         if len(checkedCommands) == 0:
             print("You have to select something")
