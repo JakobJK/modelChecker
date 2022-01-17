@@ -1,4 +1,4 @@
-mc_commands_list = [
+mcCommandsList = [
     {
         'func': 'trailingNumbers',
         'label': 'Trailing Numbers',

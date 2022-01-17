@@ -26,7 +26,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
 
     qmwInstance = None
     version = '0.1.1'
-    commandsList = mcl.mc_commands_list
+    commandsList = mcl.mcCommandsList
 
     @classmethod
     def show_UI(cls):
@@ -93,7 +93,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         self.clearButton.clicked.connect(partial(self.reportOutputUI.clear))
         self.reportBoxLayout.addWidget(self.clearButton)
         self.resize(1000, 900)
-        category = self.getCategories(mcl.mc_commands_list)
+        category = self.getCategories(self.commandsList)
         self.SLMesh = om.MSelectionList()
 
         self.categoryLayout = {}
