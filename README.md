@@ -1,12 +1,12 @@
-# modelChecker
+<h1 align="center">modelChecker</h1>
 
-modelChecker is a tool written for Autodesk Maya to sanity check digital polygon models for production. It aims to be as unopinionated as possible, It gives you concise error reporting, and let's you select your error nodes easily.
+modelChecker is a python plug-in written for Autodesk Maya to sanity check digital polygon models. It aims to be as unopinionated as possible, provides concise error reporting, and lets you select your error nodes easily.
 
 ![modelChecker](https://i.imgur.com/1PQr1S5.jpg)
 
 ## Setup
 
-Place the modelChecker files in your Maya scripts directory and create a python shell button with the following code:
+Unzip the modelChecker files in your Maya scripts directory and create a python shell button with the following code:
 
 ```python
 from modelChecker_UI import modelCheckerUI
