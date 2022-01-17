@@ -10,17 +10,12 @@ from PySide2 import QtCore, QtWidgets
 from shiboken2 import wrapInstance
 from functools import partial
 
-import sys
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
-import modelChecker
+import modelCheckerCommands
+import modelCheckerLists as mcl
 
-
-# the fix functions needs to go here eventually
-# Example:
-# def shapeNames_fix():
-# Naming checks
 
 def getMainWindow():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -47,23 +42,18 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         super(modelCheckerUI, self).__init__(
             parent, QtCore.Qt.WindowStaysOnTopHint)
 
-        # Creates object, Title Name and Adds a QtWidget as our central widget/Main Layout
         self.setObjectName("modelCheckerUI")
         self.setWindowTitle("Model Checker")
         mainLayout = QtWidgets.QWidget(self)
         self.setCentralWidget(mainLayout)
 
-        # Adding a Horizontal layout to divide the UI in two columns
         columns = QtWidgets.QHBoxLayout(mainLayout)
-
-        # Creating 2 vertical layout for the sanity checks and one for the report
         self.report = QtWidgets.QVBoxLayout()
         self.checks = QtWidgets.QVBoxLayout()
 
         columns.addLayout(self.checks)
         columns.addLayout(self.report)
 
-        # Adding UI ELEMENTS FOR CHECKS
         selectedModelVLayout = QtWidgets.QHBoxLayout()
         self.checks.addLayout(selectedModelVLayout)
 
@@ -81,14 +71,13 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         selectedModelVLayout.addWidget(self.selectedTopNode_UI)
         selectedModelVLayout.addWidget(self.selectedModelNodeButton)
 
-        # Adding UI elements to the repport
         self.reportBoxLayout = QtWidgets.QHBoxLayout()
         reportLabel = QtWidgets.QLabel("Report:")
 
         self.reportBoxLayout.addWidget(reportLabel)
         self.report.addLayout(self.reportBoxLayout)
 
-        self.reportOutputUI = QtWidgets.QPlainTextEdit()
+        self.reportOutputUI = QtWidgets.QTextEdit()
 
         self.reportOutputUI.setMinimumWidth(600)
         self.report.addWidget(self.reportOutputUI)
@@ -101,49 +90,11 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         self.clearButton = QtWidgets.QPushButton("Clear")
         self.clearButton.setMaximumWidth(150)
         self.clearButton.clicked.connect(partial(self.reportOutputUI.clear))
-
         self.reportBoxLayout.addWidget(self.clearButton)
-
-        # Adding the stretch element to the checks UI to get everything at the top
         self.resize(1000, 900)
-        self.list = [
-            'trailingNumbers_naming_1_0',
-            'duplicatedNames_naming_1_0',
-            'shapeNames_naming_1_0',
-            'namespaces_naming_1_0',
 
-            'layers_general_1_0',
-            'history_general_1_0',
-            'shaders_general_1_0',
-            'unfrozenTransforms_general_1_0',
-            'uncenteredPivots_general_1_0',
-            'parentGeometry_general_1_0',
-            'emptyGroups_general_1_0',
-
-            'triangles_topology_0_0',
-            'ngons_topology_0_0',
-            'openEdges_topology_0_0',
-            'poles_topology_0_0',
-            'hardEdges_topology_0_0',
-            'lamina_topology_0_0',
-            'zeroAreaFaces_topology_0_0',
-            'zeroLengthEdges_topology_0_0',
-            'noneManifoldEdges_topology_0_0',
-            'starlike_topology_0_0',
-
-            'selfPenetratingUVs_UVs_0_0',
-            'missingUVs_UVs_0_0',
-            'uvRange_UVs_0_0',
-            'crossBorder_UVs_0_0'
-        ]
-
-        allCategories = []
-
-        for obj in self.list:
-            number = obj.split('_')
-            allCategories.append(number[1])
-
-        category = set(allCategories)
+        self.commandsList = mcl.mc_commands_list
+        category = self.getCategories(mcl.mc_commands_list)
         self.SLMesh = om.MSelectionList()
 
         self.categoryLayout = {}
@@ -157,11 +108,9 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         self.commandLabel = {}
         self.commandCheckBox = {}
         self.errorNodesButton = {}
-        self.commandFixButton = {}
-        self.commandFix = {}
         self.commandRunButton = {}
 
-        # Create the Categories section!!
+        # Categories section
         for obj in category:
             self.categoryWidget[obj] = QtWidgets.QWidget()
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
@@ -182,13 +131,12 @@ class modelCheckerUI(QtWidgets.QMainWindow):
             self.checks.addLayout(self.categoryHeader[obj])
             self.checks.addWidget(self.categoryWidget[obj])
 
-        # Creates the buttons with their settings.
-        for obj in self.list:
-            new = obj.split('_')
-            name = new[0]
-            category = new[1]
-            check = int(new[2])
-            fix = int(new[3])
+        # Creates the buttons with their settings
+        for obj in self.commandsList:
+            name = obj['func']
+            label = obj['label']
+            category = obj['category']
+            check = obj['defaultChecked']
 
             self.commandWidget[name] = QtWidgets.QWidget()
             self.commandWidget[name].setMaximumHeight(40)
@@ -202,7 +150,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
             self.commandWidget[name].setStyleSheet(
                 "padding: 0px; margin: 0px;")
             self.command[name] = name
-            self.commandLabel[name] = QtWidgets.QLabel(name)
+            self.commandLabel[name] = QtWidgets.QLabel(label)
             self.commandLabel[name].setMinimumWidth(120)
             self.commandCheckBox[name] = QtWidgets.QCheckBox()
 
@@ -220,20 +168,10 @@ class modelCheckerUI(QtWidgets.QMainWindow):
             self.errorNodesButton[name].setEnabled(False)
             self.errorNodesButton[name].setMaximumWidth(150)
 
-            self.commandFixButton[name] = QtWidgets.QPushButton("Fix")
-
-            if fix == 1:
-                self.commandRunButton[name].clicked.connect(
-                    partial(self.commandToRun, [eval(name + "_fix")]))
-
-            self.commandFixButton[name].setEnabled(False)
-            self.commandFixButton[name].setMaximumWidth(40)
-
             self.commandLayout[name].addWidget(self.commandLabel[name])
             self.commandLayout[name].addWidget(self.commandCheckBox[name])
             self.commandLayout[name].addWidget(self.commandRunButton[name])
             self.commandLayout[name].addWidget(self.errorNodesButton[name])
-            self.commandLayout[name].addWidget(self.commandFixButton[name])
 
         self.checks.addStretch()
 
@@ -253,22 +191,23 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         self.checkButtonsLayout.addWidget(self.invertCheckButton)
         self.checkButtonsLayout.addWidget(self.checkAllButton)
 
-    # Definitions to manipulate the UI
+    def getCategories(self, incomingList):
+        allCategories = []
+        for obj in incomingList:
+            allCategories.append(obj['category'])
+        return set(allCategories)
+
     def setTopNode(self):
         sel = cmds.ls(selection=True)
         self.selectedTopNode_UI.setText(sel[0])
 
-    # Checks the state of a given checkbox
     def checkState(self, name):
         return self.commandCheckBox[name].checkState()
 
-    # Sets all checkboxes to True
-
     def checkAll(self):
-        for obj in self.list:
-            new = obj.split('_')
-            name = new[0]
-            self.commandCheckBox[name].setChecked(True)
+        for obj in self.commandsList:
+            name = obj['func']
+            self.commandCheckBox[obj['func']].setChecked(True)
 
     def toggleUI(self, obj):
         state = self.categoryWidget[obj].isVisible()
@@ -280,19 +219,14 @@ class modelCheckerUI(QtWidgets.QMainWindow):
             self.categoryCollapse[obj].setText(u'\u2193'.encode('utf-8'))
             self.categoryWidget[obj].setVisible(not state)
 
-    # Sets all checkboxes to False
-
     def uncheckAll(self):
-        for obj in self.list:
-            new = obj.split('_')
-            name = new[0]
+        for obj in self.commandsList:
+            name = obj['func']
             self.commandCheckBox[name].setChecked(False)
 
-    # Sets the checkbox to the oppositve of current state
     def invertCheck(self):
-        for obj in self.list:
-            new = obj.split('_')
-            name = new[0]
+        for obj in self.commandsList:
+            name = obj['func']
             self.commandCheckBox[name].setChecked(
                 not self.commandCheckBox[name].isChecked())
 
@@ -301,10 +235,9 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         uncheckedCategoryButtons = []
         categoryButtons = []
 
-        for obj in self.list:
-            new = obj.split('_')
-            name = new[0]
-            cat = new[1]
+        for obj in self.commandsList:
+            name = obj['func']
+            cat = obj['category']
             if cat == category:
                 categoryButtons.append(name)
                 if self.commandCheckBox[name].isChecked():
@@ -356,14 +289,16 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         if len(nodes) == 0:
             self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
         else:
-            for command in commands:
+            for currentCommand in commands:
                 # For Each node in filterNodes, run command.
+                command = currentCommand['func']
+                label = currentCommand['label']
                 self.errorNodes = getattr(
-                    modelChecker, command)(nodes, self.SLMesh)
+                    modelCheckerCommands, command)(nodes, self.SLMesh)
                 # Return error nodes
                 if self.errorNodes:
-                    self.reportOutputUI.insertPlainText(
-                        command + " -- FAILED\n")
+                    self.reportOutputUI.insertHtml(
+                        label + " -- <font color='#996666'>SUCCESS</font><br>")
                     for obj in self.errorNodes:
                         self.reportOutputUI.insertPlainText(
                             "    " + obj + "\n")
@@ -376,19 +311,18 @@ class modelCheckerUI(QtWidgets.QMainWindow):
                 else:
                     self.commandLabel[command].setStyleSheet(
                         "background-color: #446644;")
-                    self.reportOutputUI.insertPlainText(
-                        command + " -- SUCCES\n")
+                    self.reportOutputUI.insertHtml(
+                        label + " -- <font color='#669966'>SUCCESS</font><br>")
                     self.errorNodesButton[command].setEnabled(False)
 
     # Write the report to report UI.
     def sanityCheck(self):
         self.reportOutputUI.clear()
         checkedCommands = []
-        for obj in self.list:
-            new = obj.split('_')
-            name = new[0]
+        for obj in self.commandsList:
+            name = obj['func']
             if self.commandCheckBox[name].isChecked():
-                checkedCommands.append(name)
+                checkedCommands.append(obj)
             else:
                 self.commandLabel[name].setStyleSheet(
                     "background-color: none;")
@@ -399,10 +333,6 @@ class modelCheckerUI(QtWidgets.QMainWindow):
 
     def selectErrorNodes(self, list):
         cmds.select(list)
-
-    # this definition needs to run the Fix
-    def runFix(self, list, command):
-        print("yes")
 
 
 if __name__ == '__main__':
