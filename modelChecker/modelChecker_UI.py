@@ -22,7 +22,7 @@ def getMainWindow():
     return mainWindow
 
 
-class modelCheckerUI(QtWidgets.QMainWindow):
+class UI(QtWidgets.QMainWindow):
 
     qmwInstance = None
     version = '0.1.1'
@@ -31,7 +31,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
     @classmethod
     def show_UI(cls):
         if not cls.qmwInstance:
-            cls.qmwInstance = modelCheckerUI()
+            cls.qmwInstance = UI()
         if cls.qmwInstance.isHidden():
             cls.qmwInstance.show()
         else:
@@ -39,10 +39,10 @@ class modelCheckerUI(QtWidgets.QMainWindow):
             cls.qmwInstance.activateWindow()
 
     def __init__(self, parent=getMainWindow()):
-        super(modelCheckerUI, self).__init__(
+        super(UI, self).__init__(
             parent, QtCore.Qt.WindowStaysOnTopHint)
 
-        self.setObjectName("modelCheckerUI")
+        self.setObjectName("UI")
         self.setWindowTitle('Model Checker' + ' ' + self.version)
 
         mainLayout = QtWidgets.QWidget(self)
@@ -341,6 +341,6 @@ if __name__ == '__main__':
         win.close()
     except:
         pass
-    win = modelCheckerUI(parent=getMainWindow())
+    win = UI(parent=getMainWindow())
     win.show()
     win.raise_()
