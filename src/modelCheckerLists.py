@@ -1,14 +1,3 @@
-def getCategories(incomingList):
-
-    allCategories = []
-
-    for obj in incomingList:
-        print(obj)
-        allCategories.append(obj['category'])
-
-    return set(allCategories)
-
-
 mc_commands_list = [
     {
         'func': 'trailingNumbers',
@@ -162,7 +151,4 @@ mc_commands_list = [
         'category': 'UVs',
         'defaultChecked': False
     },
-
 ]
-
-mc_category_list = getCategories(mc_commands_list)

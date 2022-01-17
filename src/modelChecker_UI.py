@@ -1,7 +1,6 @@
-"""modelChecker v.0.1.0
+"""
+    modelChecker v.0.1.1
     Reliable production ready sanity checker for Autodesk Maya
-    Sanity check polygon models in Autodesk Maya, and prepare
-    your digital assets for a smooth sailing through the production pipeline.
     Contact: jakobjk@gmail.com
     https://github.com/JakobJK/modelChecker
 """
@@ -44,6 +43,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
 
         self.setObjectName("modelCheckerUI")
         self.setWindowTitle("Model Checker")
+
         mainLayout = QtWidgets.QWidget(self)
         self.setCentralWidget(mainLayout)
 
