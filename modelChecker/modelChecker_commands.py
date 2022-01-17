@@ -135,7 +135,7 @@ def zeroAreaFaces(list, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not faceIt.isDone():
             faceArea = faceIt.getArea()
-            if faceArea < 0.000001:
+            if faceArea == 0.00000001:
                 faceIndex = faceIt.index()
                 componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
                 zeroAreaFaces.append(componentName)
