@@ -24,7 +24,7 @@ There are three ways to run the checks.
 
 ## Authors
 
-- [**Jakob Kousholt**](https://www.linkedin.com/in/jakejk/) - Software Engineer / Freelance Creature Modeler
+- [**Jakob Kousholt**](https://www.linkedin.com/in/jakobjk/) - Software Engineer / Freelance Creature Modeler
 - [**Niels Peter Kaagaard**](https://www.linkedin.com/in/niels-peter-kaagaard-146b8a13) - Senior Modeler at Weta Digital
 
 ## Support & Feedback
