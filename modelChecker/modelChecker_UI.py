@@ -26,7 +26,21 @@ class UI(QtWidgets.QMainWindow):
 
     qmwInstance = None
     version = '0.1.1'
+    SLMesh = om.MSelectionList()
     commandsList = mcl.mcCommandsList
+    reportOutputUI = QtWidgets.QTextEdit()
+    categoryLayout = {}
+    categoryWidget = {}
+    categoryButton = {}
+    categoryHeader = {}
+    categoryCollapse = {}
+    command = {}
+    commandWidget = {}
+    commandLayout = {}
+    commandLabel = {}
+    commandCheckBox = {}
+    errorNodesButton = {}
+    commandRunButton = {}
 
     @classmethod
     def show_UI(cls):
@@ -42,21 +56,21 @@ class UI(QtWidgets.QMainWindow):
         super(UI, self).__init__(
             parent, QtCore.Qt.WindowStaysOnTopHint)
 
-        self.setObjectName("UI")
+        self.setObjectName("ModelCheckerUI")
         self.setWindowTitle('Model Checker' + ' ' + self.version)
 
         mainLayout = QtWidgets.QWidget(self)
         self.setCentralWidget(mainLayout)
 
         columns = QtWidgets.QHBoxLayout(mainLayout)
-        self.report = QtWidgets.QVBoxLayout()
-        self.checks = QtWidgets.QVBoxLayout()
+        report = QtWidgets.QVBoxLayout()
+        checks = QtWidgets.QVBoxLayout()
 
-        columns.addLayout(self.checks)
-        columns.addLayout(self.report)
+        columns.addLayout(checks)
+        columns.addLayout(report)
 
         selectedModelVLayout = QtWidgets.QHBoxLayout()
-        self.checks.addLayout(selectedModelVLayout)
+        checks.addLayout(selectedModelVLayout)
 
         selectedModelLabel = QtWidgets.QLabel("Top Node")
         selectedModelLabel.setMaximumWidth(60)
@@ -64,52 +78,35 @@ class UI(QtWidgets.QMainWindow):
         self.selectedTopNode_UI = QtWidgets.QLineEdit("")
         self.selectedTopNode_UI.setMaximumWidth(200)
 
-        self.selectedModelNodeButton = QtWidgets.QPushButton("Select")
-        self.selectedModelNodeButton.setMaximumWidth(60)
-        self.selectedModelNodeButton.clicked.connect(self.setTopNode)
+        selectedModelNodeButton = QtWidgets.QPushButton("Select")
+        selectedModelNodeButton.setMaximumWidth(60)
+        selectedModelNodeButton.clicked.connect(self.setTopNode)
 
         selectedModelVLayout.addWidget(selectedModelLabel)
         selectedModelVLayout.addWidget(self.selectedTopNode_UI)
-        selectedModelVLayout.addWidget(self.selectedModelNodeButton)
+        selectedModelVLayout.addWidget(selectedModelNodeButton)
 
-        self.reportBoxLayout = QtWidgets.QHBoxLayout()
+        reportBoxLayout = QtWidgets.QHBoxLayout()
         reportLabel = QtWidgets.QLabel("Report:")
 
-        self.reportBoxLayout.addWidget(reportLabel)
-        self.report.addLayout(self.reportBoxLayout)
-
-        self.reportOutputUI = QtWidgets.QTextEdit()
+        reportBoxLayout.addWidget(reportLabel)
+        report.addLayout(reportBoxLayout)
 
         self.reportOutputUI.setMinimumWidth(600)
-        self.report.addWidget(self.reportOutputUI)
+        report.addWidget(self.reportOutputUI)
 
         self.checkRunButton = QtWidgets.QPushButton("Run All Checked")
         self.checkRunButton.clicked.connect(self.sanityCheck)
 
-        self.report.addWidget(self.checkRunButton)
+        report.addWidget(self.checkRunButton)
 
-        self.clearButton = QtWidgets.QPushButton("Clear")
-        self.clearButton.setMaximumWidth(150)
-        self.clearButton.clicked.connect(partial(self.reportOutputUI.clear))
-        self.reportBoxLayout.addWidget(self.clearButton)
+        clearButton = QtWidgets.QPushButton("Clear")
+        clearButton.setMaximumWidth(150)
+        clearButton.clicked.connect(partial(self.reportOutputUI.clear))
+        reportBoxLayout.addWidget(clearButton)
         self.resize(1000, 900)
         category = self.getCategories(self.commandsList)
-        self.SLMesh = om.MSelectionList()
 
-        self.categoryLayout = {}
-        self.categoryWidget = {}
-        self.categoryButton = {}
-        self.categoryHeader = {}
-        self.categoryCollapse = {}
-        self.command = {}
-        self.commandWidget = {}
-        self.commandLayout = {}
-        self.commandLabel = {}
-        self.commandCheckBox = {}
-        self.errorNodesButton = {}
-        self.commandRunButton = {}
-
-        # Categories section
         for obj in category:
             self.categoryWidget[obj] = QtWidgets.QWidget()
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
@@ -127,8 +124,8 @@ class UI(QtWidgets.QMainWindow):
             self.categoryHeader[obj].addWidget(self.categoryButton[obj])
             self.categoryHeader[obj].addWidget(self.categoryCollapse[obj])
             self.categoryWidget[obj].setLayout(self.categoryLayout[obj])
-            self.checks.addLayout(self.categoryHeader[obj])
-            self.checks.addWidget(self.categoryWidget[obj])
+            checks.addLayout(self.categoryHeader[obj])
+            checks.addWidget(self.categoryWidget[obj])
 
         # Creates the buttons with their settings
         for obj in self.commandsList:
@@ -173,23 +170,23 @@ class UI(QtWidgets.QMainWindow):
             self.commandLayout[name].addWidget(self.commandRunButton[name])
             self.commandLayout[name].addWidget(self.errorNodesButton[name])
 
-        self.checks.addStretch()
+        checks.addStretch()
 
-        self.checkButtonsLayout = QtWidgets.QHBoxLayout()
-        self.checks.addLayout(self.checkButtonsLayout)
+        checkButtonsLayout = QtWidgets.QHBoxLayout()
+        checks.addLayout(checkButtonsLayout)
 
-        self.uncheckAllButton = QtWidgets.QPushButton("Uncheck All")
-        self.uncheckAllButton.clicked.connect(self.uncheckAll)
+        uncheckAllButton = QtWidgets.QPushButton("Uncheck All")
+        uncheckAllButton.clicked.connect(self.uncheckAll)
 
-        self.invertCheckButton = QtWidgets.QPushButton("Invert")
-        self.invertCheckButton.clicked.connect(self.invertCheck)
+        invertCheckButton = QtWidgets.QPushButton("Invert")
+        invertCheckButton.clicked.connect(self.invertCheck)
 
-        self.checkAllButton = QtWidgets.QPushButton("Check All")
-        self.checkAllButton.clicked.connect(self.checkAll)
+        checkAllButton = QtWidgets.QPushButton("Check All")
+        checkAllButton.clicked.connect(self.checkAll)
 
-        self.checkButtonsLayout.addWidget(self.uncheckAllButton)
-        self.checkButtonsLayout.addWidget(self.invertCheckButton)
-        self.checkButtonsLayout.addWidget(self.checkAllButton)
+        checkButtonsLayout.addWidget(uncheckAllButton)
+        checkButtonsLayout.addWidget(invertCheckButton)
+        checkButtonsLayout.addWidget(checkAllButton)
 
     def getCategories(self, incomingList):
         allCategories = []
@@ -283,22 +280,19 @@ class UI(QtWidgets.QMainWindow):
         return nodes
 
     def commandToRun(self, commands):
-        # Run FilterNodes
         nodes = self.filterNodes()
         self.reportOutputUI.clear()
         if len(nodes) == 0:
             self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
         else:
             for currentCommand in commands:
-                # For Each node in filterNodes, run command.
                 command = currentCommand['func']
                 label = currentCommand['label']
                 self.errorNodes = getattr(
                     mcc, command)(nodes, self.SLMesh)
-                # Return error nodes
                 if self.errorNodes:
                     self.reportOutputUI.insertHtml(
-                        label + " -- <font color='#996666'>SUCCESS</font><br>")
+                        label + " -- <font color='#996666'>FAILED</font><br>")
                     for obj in self.errorNodes:
                         self.reportOutputUI.insertPlainText(
                             "    " + obj + "\n")
@@ -315,7 +309,6 @@ class UI(QtWidgets.QMainWindow):
                         label + " -- <font color='#669966'>SUCCESS</font><br>")
                     self.errorNodesButton[command].setEnabled(False)
 
-    # Write the report to report UI.
     def sanityCheck(self):
         self.reportOutputUI.clear()
         checkedCommands = []
