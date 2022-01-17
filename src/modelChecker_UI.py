@@ -24,25 +24,26 @@ def getMainWindow():
 
 class modelCheckerUI(QtWidgets.QMainWindow):
 
-    qmw_instance = None
+    qmwInstance = None
+    version = '0.1.1'
+    commandsList = mcl.mc_commands_list
 
     @classmethod
     def show_UI(cls):
-        if not cls.qmw_instance:
-            cls.qmw_instance = modelCheckerUI()
-
-        if cls.qmw_instance.isHidden():
-            cls.qmw_instance.show()
+        if not cls.qmwInstance:
+            cls.qmwInstance = modelCheckerUI()
+        if cls.qmwInstance.isHidden():
+            cls.qmwInstance.show()
         else:
-            cls.qmw_instance.raise_()
-            cls.qmw_instance.activateWindow()
+            cls.qmwInstance.raise_()
+            cls.qmwInstance.activateWindow()
 
     def __init__(self, parent=getMainWindow()):
         super(modelCheckerUI, self).__init__(
             parent, QtCore.Qt.WindowStaysOnTopHint)
 
         self.setObjectName("modelCheckerUI")
-        self.setWindowTitle("Model Checker")
+        self.setWindowTitle('Model Checker' + ' ' + self.version)
 
         mainLayout = QtWidgets.QWidget(self)
         self.setCentralWidget(mainLayout)
@@ -92,8 +93,6 @@ class modelCheckerUI(QtWidgets.QMainWindow):
         self.clearButton.clicked.connect(partial(self.reportOutputUI.clear))
         self.reportBoxLayout.addWidget(self.clearButton)
         self.resize(1000, 900)
-
-        self.commandsList = mcl.mc_commands_list
         category = self.getCategories(mcl.mc_commands_list)
         self.SLMesh = om.MSelectionList()
 
@@ -161,7 +160,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
             self.commandRunButton[name].setMaximumWidth(30)
 
             self.commandRunButton[name].clicked.connect(
-                partial(self.commandToRun, [name]))
+                partial(self.commandToRun, [obj]))
 
             self.errorNodesButton[name] = QtWidgets.QPushButton(
                 "Select Error Nodes")
@@ -326,6 +325,7 @@ class modelCheckerUI(QtWidgets.QMainWindow):
             else:
                 self.commandLabel[name].setStyleSheet(
                     "background-color: none;")
+                self.errorNodesButton[name].setEnabled(False)
         if len(checkedCommands) == 0:
             print("You have to select something")
         else:
