@@ -31,7 +31,7 @@ There are three ways to run the checks.
 
 For any bugs, errors, and requests feel free to reach out to [Jake](mailto:jakobjk@gmail.com)
 
-If you want to support us, feel free to "buy" the modelChecker from [Gumroad](https://gumroad.com/l/PGuOu).
+If you want to support us, feel free to "buy" the modelChecker from [Gumroad](https://jakejk.gumroad.com/l/htZYj).
 
 ## License
 
