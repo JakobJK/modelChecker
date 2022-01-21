@@ -12,8 +12,8 @@ from functools import partial
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
-import modelChecker_commands as mcc
-import modelChecker_list as mcl
+import modelChecker.modelChecker_commands as mcc
+import modelChecker.modelChecker_list as mcl
 
 
 def getMainWindow():
