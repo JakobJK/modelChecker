@@ -86,44 +86,13 @@ def plugin_factory(func, label_input, category, **kwargs):
     return ValidationPlugin
 
 
+# create pyblish plugins dynamically, and add them to this module it's variables so that pyblish's discover function can find them
 module_variable_dict = globals()
-for dict in command_list.mcCommandsList:
-    command = dict['func']
-    label = dict['label']
-    category = dict['category']
+for data in command_list.mcCommandsList:
+    command = data['func']
+    label = data['label']
+    category = data['category']
 
     variable_name = 'validate_' + command + '_plugin'
     pyblish_plugin = plugin_factory(command, label, category)
     module_variable_dict[variable_name] = pyblish_plugin
-
-    # 'func': 'duplicatedNames',
-    # 'label': 'Duplicated Names',
-    # 'category':
-# ValidateFindTriangleEdge = plugin_factory(find_triangle_edge)
-
-# self.errorNodes = getattr(mcc, command)(nodes, self.SLMesh)
-
-# class ConvertMSelectionList(pyblish.api.Collector):
-#     """convert long mesh names to MSelectionList"""
-#
-#     # pyblish plugin attributes
-#     hosts = ['maya','long_name']
-#     label = 'collect meshnames'
-#     optional = True
-#     order = pyblish.api.Collector.order + 0.1  # run after CollectMeshNames
-#
-#     def process(self, context):
-
-
-# def filter_nodes():
-#
-#
-#     SLMesh = om.MSelectionList()
-#
-#     nodes = []
-#
-#
-#     for node in nodes:
-#         shapes = cmds.listRelatives(node, shapes=True, typ="mesh")
-#         if shapes:
-#             SLMesh.add(node)
