@@ -1,7 +1,11 @@
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
 
-version = int(cmds.about(version=True))
+release = cmds.about(version=True)
+if 'Preview' in release:
+    version = 2023
+else:
+    version = int(cmds.about(version=True))
 
 
 def trailingNumbers(list, SLMesh):
