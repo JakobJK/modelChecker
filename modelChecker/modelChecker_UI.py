@@ -14,11 +14,15 @@ import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
 import modelChecker.modelChecker_commands as mcc
 import modelChecker.modelChecker_list as mcl
+import sys
 
 
 def getMainWindow():
     main_window_ptr = omui.MQtUtil.mainWindow()
-    mainWindow = wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
+    if sys.version_info.major >= 3:
+        mainWindow = wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
+    else:
+        mainWindow = wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
     return mainWindow
 
 
@@ -112,8 +116,11 @@ class UI(QtWidgets.QMainWindow):
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
             self.categoryHeader[obj] = QtWidgets.QHBoxLayout()
             self.categoryButton[obj] = QtWidgets.QPushButton(obj)
-            self.categoryCollapse[obj] = QtWidgets.QPushButton(
-                u'\u2193'.encode('utf-8'))
+            if sys.version_info.major >= 3:
+                text = '\u2193'
+            else:
+                text = u'\u2193'.encode('utf-8')
+            self.categoryCollapse[obj] = QtWidgets.QPushButton(text)
             self.categoryCollapse[obj].clicked.connect(
                 partial(self.toggleUI, obj))
             self.categoryCollapse[obj].setMaximumWidth(30)
@@ -206,14 +213,25 @@ class UI(QtWidgets.QMainWindow):
             name = obj['func']
             self.commandCheckBox[obj['func']].setChecked(True)
 
+    def getArrow(self):
+        pass
+
     def toggleUI(self, obj):
         state = self.categoryWidget[obj].isVisible()
         if state:
-            self.categoryCollapse[obj].setText(u'\u21B5'.encode('utf-8'))
+            if sys.version_info.major >= 3:
+                text = u'\u21B5'
+            else:
+                text = u'\u21B5'.encode('utf-8')
+            self.categoryCollapse[obj].setText(text)
             self.categoryWidget[obj].setVisible(not state)
             self.adjustSize()
         else:
-            self.categoryCollapse[obj].setText(u'\u2193'.encode('utf-8'))
+            if sys.version_info.major >= 3:
+                text = u'\u2193'
+            else:
+                text = u'\u2193'.encode('utf-8')
+            self.categoryCollapse[obj].setText(text)
             self.categoryWidget[obj].setVisible(not state)
 
     def uncheckAll(self):
