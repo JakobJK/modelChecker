@@ -1,5 +1,3 @@
-# from modelChecker.modelChecker_UI import cmds, om
-import modelChecker.modelChecker_UI as ui
 import modelChecker.modelChecker_list as command_list
 import modelChecker.modelChecker_commands as mcc
 import pyblish.api
@@ -43,7 +41,7 @@ class ActionSelect(pyblish.api.Action):
         cmds.select(errors)
 
 
-def plugin_factory(func, label_input, category, **kwargs):
+def plugin_factory(func, label_input, category, doc, **kwargs):
     """
     create a costum class that loads the functions from check_core in pyblish as plugins.
     :param str func: name of function/command we want to wrap in a pyblish plugin
@@ -82,6 +80,7 @@ def plugin_factory(func, label_input, category, **kwargs):
                 assert not errors, 'check failed on:' + str(errors)
 
     ValidationPlugin.__name__ = 'validate_' + func
+    ValidationPlugin.__doc__ = doc
 
     return ValidationPlugin
 
@@ -92,7 +91,8 @@ for data in command_list.mcCommandsList:
     command = data['func']
     label = data['label']
     category = data['category']
+    doc = data.get('description', None)
 
     variable_name = 'validate_' + command + '_plugin'
-    pyblish_plugin = plugin_factory(command, label, category)
+    pyblish_plugin = plugin_factory(command, label, category, doc)
     module_variable_dict[variable_name] = pyblish_plugin
