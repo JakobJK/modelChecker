@@ -139,7 +139,7 @@ def zeroAreaFaces(list, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not faceIt.isDone():
             faceArea = faceIt.getArea()
-            if faceArea == 0.00000001:
+            if faceArea <= 0.00000001:
                 faceIndex = faceIt.index()
                 componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
                 zeroAreaFaces.append(componentName)
@@ -160,7 +160,7 @@ def zeroLengthEdges(list, SLMesh):
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
         while not edgeIt.isDone():
-            if edgeIt.length() < 0.00000001:
+            if edgeIt.length() <= 0.00000001:
                 componentName = str(objectName) + \
                     '.f[' + str(edgeIt.index()) + ']'
                 zeroLengthEdges.append(componentName)
