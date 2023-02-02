@@ -151,4 +151,10 @@ mcCommandsList = [
         'category': 'UVs',
         'defaultChecked': False
     },
+    {
+        'func': 'onBorder',
+        'label': 'On Border',
+        'category': 'UVs',
+        'defaultChecked': False
+    }
 ]

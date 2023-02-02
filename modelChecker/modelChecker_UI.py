@@ -216,32 +216,32 @@ class UI(QtWidgets.QMainWindow):
     def getArrow(self):
         pass
 
-    def toggleUI(self, obj):
-        state = self.categoryWidget[obj].isVisible()
+    def toggleUI(self, category):
+        state = self.categoryWidget[category].isVisible()
         if state:
             if sys.version_info.major >= 3:
                 text = u'\u21B5'
             else:
                 text = u'\u21B5'.encode('utf-8')
-            self.categoryCollapse[obj].setText(text)
-            self.categoryWidget[obj].setVisible(not state)
+            self.categoryCollapse[category].setText(text)
+            self.categoryWidget[category].setVisible(not state)
             self.adjustSize()
         else:
             if sys.version_info.major >= 3:
                 text = u'\u2193'
             else:
                 text = u'\u2193'.encode('utf-8')
-            self.categoryCollapse[obj].setText(text)
-            self.categoryWidget[obj].setVisible(not state)
+            self.categoryCollapse[category].setText(text)
+            self.categoryWidget[category].setVisible(not state)
 
     def uncheckAll(self):
-        for obj in self.commandsList:
-            name = obj['func']
+        for command in self.commandsList:
+            name = command['func']
             self.commandCheckBox[name].setChecked(False)
 
     def invertCheck(self):
-        for obj in self.commandsList:
-            name = obj['func']
+        for command in self.commandsList:
+            name = command['func']
             self.commandCheckBox[name].setChecked(
                 not self.commandCheckBox[name].isChecked())
 
@@ -258,13 +258,10 @@ class UI(QtWidgets.QMainWindow):
                 if self.commandCheckBox[name].isChecked():
                     uncheckedCategoryButtons.append(name)
 
-        for obj in categoryButtons:
-            if len(uncheckedCategoryButtons) == len(categoryButtons):
-                self.commandCheckBox[obj].setChecked(False)
-            else:
-                self.commandCheckBox[obj].setChecked(True)
+        for category in categoryButtons:
+            checked = len(uncheckedCategoryButtons) != len(categoryButtons)
+            self.commandCheckBox[category].setChecked(checked)
 
-    # Filter Nodes
     def filterNodes(self):
         nodes = []
         self.SLMesh.clear()
@@ -338,13 +335,11 @@ class UI(QtWidgets.QMainWindow):
                 self.commandLabel[name].setStyleSheet(
                     "background-color: none; padding: 2px;")
                 self.errorNodesButton[name].setEnabled(False)
-        if len(checkedCommands) == 0:
-            print("You have to select something")
-        else:
+        if checkedCommands:
             self.commandToRun(checkedCommands)
 
-    def selectErrorNodes(self, list):
-        cmds.select(list)
+    def selectErrorNodes(self, nodes):
+        cmds.select(nodes)
 
 
 if __name__ == '__main__':
