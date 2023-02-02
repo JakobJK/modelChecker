@@ -22,6 +22,7 @@ def getMainWindow():
     if sys.version_info.major >= 3:
         mainWindow = wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
     else:
+        # Support for Maya 2016
         mainWindow = wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
     return mainWindow
 
