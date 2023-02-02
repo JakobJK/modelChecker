@@ -359,7 +359,6 @@ def emptyGroups(nodes, SLMesh):
 
 def parentGeometry(transformNodes, SLMesh):
     parentGeometry = []
-    shapeNode = False
     for node in transformNodes:
         shapeNode = False
         parents = cmds.listRelatives(node, p=True, fullPath=True)
