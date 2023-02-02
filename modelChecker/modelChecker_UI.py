@@ -1,6 +1,6 @@
 """
-    modelChecker v.0.1.1
-    Reliable production ready sanity checker for Autodesk Maya
+    modelChecker v.0.1.2
+    Model sanity checker for Autodesk Maya
     Contact: jakobjk@gmail.com
     https://github.com/JakobJK/modelChecker
 """
@@ -116,16 +116,16 @@ class UI(QtWidgets.QMainWindow):
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
             self.categoryHeader[obj] = QtWidgets.QHBoxLayout()
             self.categoryButton[obj] = QtWidgets.QPushButton(obj)
-            if sys.version_info.major >= 3:
-                text = '\u2193'
-            else:
-                text = u'\u2193'.encode('utf-8')
+            text = '\u2193' if sys.version_info.major >= 3 else u'\u2193'.encode('utf-8')
             self.categoryCollapse[obj] = QtWidgets.QPushButton(text)
             self.categoryCollapse[obj].clicked.connect(
                 partial(self.toggleUI, obj))
             self.categoryCollapse[obj].setMaximumWidth(30)
             self.categoryButton[obj].setStyleSheet(
-                "background-color: grey; text-transform: uppercase; color: #000000; font-size: 18px;")
+                """background-color: grey; 
+                text-transform: uppercase; 
+                color: #000000; font-size: 
+                18px;""")
             self.categoryButton[obj].clicked.connect(
                 partial(self.checkCategory, obj))
             self.categoryHeader[obj].addWidget(self.categoryButton[obj])
@@ -135,11 +135,11 @@ class UI(QtWidgets.QMainWindow):
             checks.addWidget(self.categoryWidget[obj])
 
         # Creates the buttons with their settings
-        for obj in self.commandsList:
-            name = obj['func']
-            label = obj['label']
-            category = obj['category']
-            check = obj['defaultChecked']
+        for command in self.commandsList:
+            name = command['func']
+            label = command['label']
+            category = command['category']
+            check = command['defaultChecked']
 
             self.commandWidget[name] = QtWidgets.QWidget()
             self.commandWidget[name].setMaximumHeight(40)
@@ -195,11 +195,11 @@ class UI(QtWidgets.QMainWindow):
         checkButtonsLayout.addWidget(invertCheckButton)
         checkButtonsLayout.addWidget(checkAllButton)
 
-    def getCategories(self, incomingList):
-        allCategories = []
-        for obj in incomingList:
-            allCategories.append(obj['category'])
-        return set(allCategories)
+    def getCategories(self, commands):
+        allCategories = {}
+        for command in commands:
+            allCategories.add(command['category'])
+        return allCategories
 
     def setTopNode(self):
         sel = cmds.ls(selection=True)
@@ -209,20 +209,13 @@ class UI(QtWidgets.QMainWindow):
         return self.commandCheckBox[name].checkState()
 
     def checkAll(self):
-        for obj in self.commandsList:
-            name = obj['func']
-            self.commandCheckBox[obj['func']].setChecked(True)
-
-    def getArrow(self):
-        pass
+        for command in self.commandsList:
+            self.commandCheckBox[command['func']].setChecked(True)
 
     def toggleUI(self, category):
         state = self.categoryWidget[category].isVisible()
         if state:
-            if sys.version_info.major >= 3:
-                text = u'\u21B5'
-            else:
-                text = u'\u21B5'.encode('utf-8')
+            text = u'\u21B5' if sys.version_info.major >= 3 else u'\u21B5'.encode('utf-8')
             self.categoryCollapse[category].setText(text)
             self.categoryWidget[category].setVisible(not state)
             self.adjustSize()
