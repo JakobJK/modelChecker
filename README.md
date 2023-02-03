@@ -4,9 +4,9 @@ modelChecker is a python plug-in written for Autodesk Maya to sanity check digit
 
 ![modelChecker](./modelChecker.png)
 
-## Setup
+## Install
 
-Download the [modelChecker.zip](https://github.com/JakobJK/modelChecker/archive/main.zip) and move the modelChecker folder in your Maya scripts directory and create a python shell button with the following code:
+Download the [modelChecker.zip](https://github.com/JakobJK/modelChecker/archive/main.zip) and place the modelChecker folder in your Maya scripts directory and create a python shelf button with the following code:
 
 ```python
 from modelChecker import modelChecker_UI
@@ -18,18 +18,18 @@ modelChecker_UI.UI.show_UI()
 
 There are three ways to run the checks.
 
-1. If you have objects selected the checks will run on the current selection.
-2. A hierachy by declaring a top node in the UI.
-3. If you have an empty selection and no top node is declared the checks will run on the entire scene.
+1. If you have objects selected, the checks will run on the current selection. Select objects in object mode. (component mode won't work).
+2. On a hierarchy by declaring a root node in the UI.
+3. The checks will run on the entire scene if nothing is selected and the root node field is left empty.
 
 ## Authors
 
-- [**Jakob Kousholt**](https://www.linkedin.com/in/jakobjk/) - Software Engineer / Freelance Creature Modeler
+- [**Jakob Kousholt**](https://www.linkedin.com/in/jakobjk/) - Software Engineer
 - [**Niels Peter Kaagaard**](https://www.linkedin.com/in/niels-peter-kaagaard-146b8a13) - Senior Modeler at Weta Digital
 
 ## Support & Feedback
 
-For any bugs, errors, and requests feel free to reach out to [Jake](mailto:jakobjk@gmail.com)
+For any bugs, errors, and requests, feel free to reach out to [Jake](mailto:jakobjk@gmail.com)
 
 If you want to support us, feel free to "buy" the modelChecker from [Gumroad](https://jakejk.gumroad.com/l/htZYj).
 

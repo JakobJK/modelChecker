@@ -1,6 +1,6 @@
 """
-    modelChecker v.0.1.1
-    Reliable production ready sanity checker for Autodesk Maya
+    modelChecker v.0.1.2
+    Model sanity checker for Autodesk Maya
     Contact: jakobjk@gmail.com
     https://github.com/JakobJK/modelChecker
 """
@@ -22,6 +22,7 @@ def getMainWindow():
     if sys.version_info.major >= 3:
         mainWindow = wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
     else:
+        # Support for Maya 2016
         mainWindow = wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
     return mainWindow
 
@@ -29,7 +30,7 @@ def getMainWindow():
 class UI(QtWidgets.QMainWindow):
 
     qmwInstance = None
-    version = '0.1.1'
+    version = '0.1.2'
     SLMesh = om.MSelectionList()
     commandsList = mcl.mcCommandsList
     reportOutputUI = QtWidgets.QTextEdit()
@@ -76,11 +77,11 @@ class UI(QtWidgets.QMainWindow):
         selectedModelVLayout = QtWidgets.QHBoxLayout()
         checks.addLayout(selectedModelVLayout)
 
-        selectedModelLabel = QtWidgets.QLabel("Top Node")
-        selectedModelLabel.setMaximumWidth(60)
+        selectedModelLabel = QtWidgets.QLabel("Root Node")
+        selectedModelLabel.setMaximumWidth(80)
 
         self.selectedTopNode_UI = QtWidgets.QLineEdit("")
-        self.selectedTopNode_UI.setMaximumWidth(200)
+        # self.selectedTopNode_UI.setMaximumWidth()
 
         selectedModelNodeButton = QtWidgets.QPushButton("Select")
         selectedModelNodeButton.setMaximumWidth(60)
@@ -116,16 +117,16 @@ class UI(QtWidgets.QMainWindow):
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
             self.categoryHeader[obj] = QtWidgets.QHBoxLayout()
             self.categoryButton[obj] = QtWidgets.QPushButton(obj)
-            if sys.version_info.major >= 3:
-                text = '\u2193'
-            else:
-                text = u'\u2193'.encode('utf-8')
+            text = '\u2193' if sys.version_info.major >= 3 else u'\u2193'.encode('utf-8')
             self.categoryCollapse[obj] = QtWidgets.QPushButton(text)
             self.categoryCollapse[obj].clicked.connect(
                 partial(self.toggleUI, obj))
             self.categoryCollapse[obj].setMaximumWidth(30)
             self.categoryButton[obj].setStyleSheet(
-                "background-color: grey; text-transform: uppercase; color: #000000; font-size: 18px;")
+                """background-color: grey; 
+                text-transform: uppercase; 
+                color: #000000; font-size: 
+                18px;""")
             self.categoryButton[obj].clicked.connect(
                 partial(self.checkCategory, obj))
             self.categoryHeader[obj].addWidget(self.categoryButton[obj])
@@ -135,11 +136,11 @@ class UI(QtWidgets.QMainWindow):
             checks.addWidget(self.categoryWidget[obj])
 
         # Creates the buttons with their settings
-        for obj in self.commandsList:
-            name = obj['func']
-            label = obj['label']
-            category = obj['category']
-            check = obj['defaultChecked']
+        for command in self.commandsList:
+            name = command['func']
+            label = command['label']
+            category = command['category']
+            check = command['defaultChecked']
 
             self.commandWidget[name] = QtWidgets.QWidget()
             self.commandWidget[name].setMaximumHeight(40)
@@ -154,7 +155,7 @@ class UI(QtWidgets.QMainWindow):
                 "padding: 0px; margin: 0px;")
             self.command[name] = name
             self.commandLabel[name] = QtWidgets.QLabel(label)
-            self.commandLabel[name].setMinimumWidth(120)
+            self.commandLabel[name].setMinimumWidth(180)
             self.commandLabel[name].setStyleSheet("padding: 2px;")
             self.commandCheckBox[name] = QtWidgets.QCheckBox()
 
@@ -162,7 +163,7 @@ class UI(QtWidgets.QMainWindow):
             self.commandCheckBox[name].setMaximumWidth(20)
 
             self.commandRunButton[name] = QtWidgets.QPushButton("Run")
-            self.commandRunButton[name].setMaximumWidth(30)
+            self.commandRunButton[name].setMaximumWidth(40)
 
             self.commandRunButton[name].clicked.connect(
                 partial(self.commandToRun, [obj]))
@@ -195,11 +196,11 @@ class UI(QtWidgets.QMainWindow):
         checkButtonsLayout.addWidget(invertCheckButton)
         checkButtonsLayout.addWidget(checkAllButton)
 
-    def getCategories(self, incomingList):
-        allCategories = []
-        for obj in incomingList:
-            allCategories.append(obj['category'])
-        return set(allCategories)
+    def getCategories(self, commands):
+        allCategories = set()
+        for command in commands:
+            allCategories.add(command['category'])
+        return allCategories
 
     def setTopNode(self):
         sel = cmds.ls(selection=True)
@@ -209,93 +210,77 @@ class UI(QtWidgets.QMainWindow):
         return self.commandCheckBox[name].checkState()
 
     def checkAll(self):
-        for obj in self.commandsList:
-            name = obj['func']
-            self.commandCheckBox[obj['func']].setChecked(True)
+        for command in self.commandsList:
+            self.commandCheckBox[command['func']].setChecked(True)
 
-    def getArrow(self):
-        pass
-
-    def toggleUI(self, obj):
-        state = self.categoryWidget[obj].isVisible()
-        if state:
-            if sys.version_info.major >= 3:
-                text = u'\u21B5'
-            else:
-                text = u'\u21B5'.encode('utf-8')
-            self.categoryCollapse[obj].setText(text)
-            self.categoryWidget[obj].setVisible(not state)
-            self.adjustSize()
-        else:
-            if sys.version_info.major >= 3:
-                text = u'\u2193'
-            else:
-                text = u'\u2193'.encode('utf-8')
-            self.categoryCollapse[obj].setText(text)
-            self.categoryWidget[obj].setVisible(not state)
+    def toggleUI(self, category):
+        state = self.categoryWidget[category].isVisible()
+        buttonLabel = u'\u21B5' if state else u'\u2193'
+        text = buttonLabel if sys.version_info.major >= 3 else buttonLabel.encode('utf-8')
+        self.adjustSize()
+        self.categoryCollapse[category].setText(text)
+        self.categoryWidget[category].setVisible(not state)
 
     def uncheckAll(self):
-        for obj in self.commandsList:
-            name = obj['func']
+        for command in self.commandsList:
+            name = command['func']
             self.commandCheckBox[name].setChecked(False)
 
     def invertCheck(self):
-        for obj in self.commandsList:
-            name = obj['func']
+        for command in self.commandsList:
+            name = command['func']
             self.commandCheckBox[name].setChecked(
                 not self.commandCheckBox[name].isChecked())
 
     def checkCategory(self, category):
-
         uncheckedCategoryButtons = []
         categoryButtons = []
 
-        for obj in self.commandsList:
-            name = obj['func']
-            cat = obj['category']
+        for command in self.commandsList:
+            name = command['func']
+            cat = command['category']
             if cat == category:
                 categoryButtons.append(name)
                 if self.commandCheckBox[name].isChecked():
                     uncheckedCategoryButtons.append(name)
 
-        for obj in categoryButtons:
-            if len(uncheckedCategoryButtons) == len(categoryButtons):
-                self.commandCheckBox[obj].setChecked(False)
-            else:
-                self.commandCheckBox[obj].setChecked(True)
+        for category in categoryButtons:
+            checked = len(uncheckedCategoryButtons) != len(categoryButtons)
+            self.commandCheckBox[category].setChecked(checked)
 
-    # Filter Nodes
     def filterNodes(self):
-        nodes = []
         self.SLMesh.clear()
-        allUsuableNodes = []
-        allNodes = cmds.ls(transforms=True)
-        for obj in allNodes:
-            if not obj in {'front', 'persp', 'top', 'side'}:
-                allUsuableNodes.append(obj)
-
-        selection = cmds.ls(sl=True)
-        topNode = self.selectedTopNode_UI.text()
+        selection = cmds.ls(selection=True, typ="transform")
         if len(selection) > 0:
             nodes = selection
         elif self.selectedTopNode_UI.text() == "":
-            nodes = allUsuableNodes
+            nodes = self.filterGetAllNodes()
         else:
-            if cmds.objExists(topNode):
-                nodes = cmds.listRelatives(
-                    topNode, allDescendents=True, typ="transform")
-                if not nodes:
-                    nodes = topNode
-                nodes.append(topNode)
-            else:
-                response = "Object in Top Node doesn't exists\n"
+            nodes = self.filterGetTopNode(topNode)
+            if not nodes:
                 self.reportOutputUI.clear()
-                self.reportOutputUI.insertPlainText(response)
+                self.reportOutputUI.insertPlainText("Object in Root Node doesn't exists\n")
         for node in nodes:
             shapes = cmds.listRelatives(node, shapes=True, typ="mesh")
             if shapes:
                 self.SLMesh.add(node)
         return nodes
+
+    def filterGetTopNode(self, topNode):
+        nodes = []
+        if cmds.objExists(topNode):
+            nodes = cmds.listRelatives(
+                topNode, allDescendents=True, typ="transform")
+        return nodes
+
+    def filterGetAllNodes(self):
+        allNodes = cmds.ls(transforms=True)
+        allUsuableNodes = []
+        for node in allNodes:
+            if not node in {'front', 'persp', 'top', 'side'}:
+                allUsuableNodes.append(node)
+        return allUsuableNodes
+
 
     def commandToRun(self, commands):
         nodes = self.filterNodes()
@@ -306,18 +291,17 @@ class UI(QtWidgets.QMainWindow):
             for currentCommand in commands:
                 command = currentCommand['func']
                 label = currentCommand['label']
-                self.errorNodes = getattr(
+                error = getattr(
                     mcc, command)(nodes, self.SLMesh)
-                if self.errorNodes:
+                if error:
                     self.reportOutputUI.insertHtml(
                         label + " -- <font color='#996666'>FAILED</font><br>")
-                    for obj in self.errorNodes:
+                    for obj in error:
                         self.reportOutputUI.insertPlainText(
                             "    " + obj + "\n")
-
                     self.errorNodesButton[command].setEnabled(True)
                     self.errorNodesButton[command].clicked.connect(
-                        partial(self.selectErrorNodes, self.errorNodes))
+                        partial(self.selectErrorNodes, error))
                     self.commandLabel[command].setStyleSheet(
                         "background-color: #664444; padding: 2px;")
                 else:
@@ -330,22 +314,19 @@ class UI(QtWidgets.QMainWindow):
     def sanityCheck(self):
         self.reportOutputUI.clear()
         checkedCommands = []
-        for obj in self.commandsList:
-            name = obj['func']
+        for command in self.commandsList:
+            name = command['func']
             if self.commandCheckBox[name].isChecked():
-                checkedCommands.append(obj)
+                checkedCommands.append(command)
             else:
                 self.commandLabel[name].setStyleSheet(
                     "background-color: none; padding: 2px;")
                 self.errorNodesButton[name].setEnabled(False)
-        if len(checkedCommands) == 0:
-            print("You have to select something")
-        else:
+        if checkedCommands:
             self.commandToRun(checkedCommands)
 
-    def selectErrorNodes(self, list):
-        cmds.select(list)
-
+    def selectErrorNodes(self, nodes):
+        cmds.select(nodes)
 
 if __name__ == '__main__':
     try:
@@ -355,3 +336,4 @@ if __name__ == '__main__':
     win = UI(parent=getMainWindow())
     win.show()
     win.raise_()
+    
