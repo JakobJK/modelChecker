@@ -77,7 +77,7 @@ class UI(QtWidgets.QMainWindow):
         selectedModelVLayout = QtWidgets.QHBoxLayout()
         checks.addLayout(selectedModelVLayout)
 
-        selectedModelLabel = QtWidgets.QLabel("Top Node")
+        selectedModelLabel = QtWidgets.QLabel("Root Node")
         selectedModelLabel.setMaximumWidth(60)
 
         self.selectedTopNode_UI = QtWidgets.QLineEdit("")
@@ -244,9 +244,9 @@ class UI(QtWidgets.QMainWindow):
         uncheckedCategoryButtons = []
         categoryButtons = []
 
-        for obj in self.commandsList:
-            name = obj['func']
-            cat = obj['category']
+        for command in self.commandsList:
+            name = command['func']
+            cat = command['category']
             if cat == category:
                 categoryButtons.append(name)
                 if self.commandCheckBox[name].isChecked():
@@ -279,7 +279,7 @@ class UI(QtWidgets.QMainWindow):
                     nodes = topNode
                 nodes.append(topNode)
             else:
-                response = "Object in Top Node doesn't exists\n"
+                response = "Object in Root Node doesn't exists\n"
                 self.reportOutputUI.clear()
                 self.reportOutputUI.insertPlainText(response)
         for node in nodes:
@@ -321,10 +321,10 @@ class UI(QtWidgets.QMainWindow):
     def sanityCheck(self):
         self.reportOutputUI.clear()
         checkedCommands = []
-        for obj in self.commandsList:
-            name = obj['func']
+        for command in self.commandsList:
+            name = command['func']
             if self.commandCheckBox[name].isChecked():
-                checkedCommands.append(obj)
+                checkedCommands.append(command)
             else:
                 self.commandLabel[name].setStyleSheet(
                     "background-color: none; padding: 2px;")
@@ -335,7 +335,6 @@ class UI(QtWidgets.QMainWindow):
     def selectErrorNodes(self, nodes):
         cmds.select(nodes)
 
-
 if __name__ == '__main__':
     try:
         win.close()
@@ -344,3 +343,4 @@ if __name__ == '__main__':
     win = UI(parent=getMainWindow())
     win.show()
     win.raise_()
+    

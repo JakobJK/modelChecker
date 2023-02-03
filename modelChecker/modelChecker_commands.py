@@ -69,8 +69,7 @@ def ngons(_, SLMesh):
         while not faceIt.isDone():
             numOfEdges = faceIt.getEdges()
             if len(numOfEdges) > 4:
-                faceIndex = faceIt.index()
-                componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+                componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
                 ngons.append(componentName)
             if version < 2020:
                 faceIt.next(None)
@@ -87,8 +86,7 @@ def hardEdges(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not edgeIt.isDone():
             if edgeIt.isSmooth == False and edgeIt.onBoundary() == False:
-                edgeIndex = edgeIt.index()
-                componentName = str(objectName) + '.e[' + str(edgeIndex) + ']'
+                componentName = str(objectName) + '.e[' + str(edgeIt.index()) + ']'
                 hardEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -123,8 +121,7 @@ def zeroAreaFaces(_, SLMesh):
         while not faceIt.isDone():
             faceArea = faceIt.getArea()
             if faceArea <= 0.00000001:
-                faceIndex = faceIt.index()
-                componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+                componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
                 zeroAreaFaces.append(componentName)
             if version < 2020:
                 faceIt.next(None)
@@ -171,8 +168,7 @@ def noneManifoldEdges(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not edgeIt.isDone():
             if edgeIt.numConnectedFaces() > 2:
-                edgeIndex = edgeIt.index()
-                componentName = str(objectName) + '.e[' + str(edgeIndex) + ']'
+                componentName = str(objectName) + '.e[' + str(edgeIt.index()) + ']'
                 noneManifoldEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -187,8 +183,7 @@ def openEdges(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not edgeIt.isDone():
             if edgeIt.numConnectedFaces() < 2:
-                edgeIndex = edgeIt.index()
-                componentName = str(objectName) + '.e[' + str(edgeIndex) + ']'
+                componentName = str(objectName) + '.e[' + str(edgeIt.index()) + ']'
                 openEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -203,9 +198,8 @@ def poles(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not vertexIt.isDone():
             if vertexIt.numConnectedEdges() > 5:
-                vertexIndex = vertexIt.index()
                 componentName = str(objectName) + \
-                    '.vtx[' + str(vertexIndex) + ']'
+                    '.vtx[' + str(vertexIt.index()) + ']'
                 poles.append(componentName)
             vertexIt.next()
         selIt.next()
@@ -219,10 +213,9 @@ def starlike(_, SLMesh):
         polyIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
         while not polyIt.isDone():
-            if polyIt.isStarlike() == False:
-                polygonIndex = polyIt.index()
+            if not polyIt.isStarlike():
                 componentName = str(objectName) + \
-                    '.e[' + str(polygonIndex) + ']'
+                    '.e[' + str(polyIt.index()) + ']'
                 starlike.append(componentName)
             if version < 2020:
                 polyIt.next(None)
@@ -249,7 +242,7 @@ def missingUVs(_, SLMesh):
         selIt.next()
     return missingUVs
 
-def uvRange(list, SLMesh):
+def uvRange(_, SLMesh):
     uvRange = []
     selIt = om.MItSelectionList(SLMesh)
     mesh = om.MFnMesh(selIt.getDagPath())
@@ -261,7 +254,7 @@ def uvRange(list, SLMesh):
             uvRange.append(componentName)
     return uvRange
 
-def onBorder(list, SLMesh):
+def onBorder(_, SLMesh):
     onBorder = []
     selIt = om.MItSelectionList(SLMesh)
     mesh = om.MFnMesh(selIt.getDagPath())
@@ -280,8 +273,7 @@ def crossBorder(_, SLMesh):
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
         while not faceIt.isDone():
-            U = set()
-            V = set()
+            U, V = set(), set()
             Us, Vs, *_ = faceIt.getUVs()
             for i in range(len(Us)):
                 u_add = int(Us[i]) if Us[i] > 0 else int(Us[i]) - 1
@@ -309,7 +301,7 @@ def unfrozenTransforms(nodes, SLMesh):
             unfrozenTransforms.append(node)
     return unfrozenTransforms
 
-def layers(nodes, SLMesh):
+def layers(nodes, _):
     layers = []
     for node in nodes:
         layer = cmds.listConnections(node, type="displayLayer")
@@ -317,15 +309,13 @@ def layers(nodes, SLMesh):
             layers.append(node)
     return layers
 
-def shaders(transformNodes, SLMesh):
+def shaders(transformNodes, _):
     shaders = []
     for node in transformNodes:
-        shadingGrps = None
         shape = cmds.listRelatives(node, shapes=True, fullPath=True)
-        if cmds.nodeType(shape) == 'mesh':
-            if shape:
-                shadingGrps = cmds.listConnections(shape, type='shadingEngine')
-            if not shadingGrps[0] == 'initialShadingGroup':
+        if cmds.nodeType(shape) == 'mesh' and shape:
+            shadingGrps = cmds.listConnections(shape, type='shadingEngine')
+            if shadingGrps[0] != 'initialShadingGroup':
                 shaders.append(node)
     return shaders
 
@@ -333,11 +323,10 @@ def history(nodes, SLMesh):
     history = []
     for node in nodes:
         shape = cmds.listRelatives(node, shapes=True, fullPath=True)
-        if shape:
-            if cmds.nodeType(shape[0]) == 'mesh':
-                historySize = len(cmds.listHistory(shape))
-                if historySize > 1:
-                    history.append(node)
+        if shape and cmds.nodeType(shape[0]) == 'mesh':
+            historySize = len(cmds.listHistory(shape))
+            if historySize > 1:
+                history.append(node)
     return history
 
 def uncenteredPivots(nodes, SLMesh):
@@ -352,7 +341,7 @@ def emptyGroups(nodes, SLMesh):
     emptyGroups = []
     for node in nodes:
         children = cmds.listRelatives(node, ad=True)
-        if children is None:
+        if not children:
             emptyGroups.append(node)
     return emptyGroups
 
@@ -360,14 +349,11 @@ def emptyGroups(nodes, SLMesh):
 def parentGeometry(transformNodes, SLMesh):
     parentGeometry = []
     for node in transformNodes:
-        shapeNode = False
         parents = cmds.listRelatives(node, p=True, fullPath=True)
         if parents:
             for parent in parents:
                 children = cmds.listRelatives(parent, fullPath=True)
                 for parent in children:
                     if cmds.nodeType(parent) == 'mesh':
-                        shapeNode = True
-        if shapeNode:
-            parentGeometry.append(node)
+                        parentGeometry.append(node)
     return parentGeometry
