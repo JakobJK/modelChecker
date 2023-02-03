@@ -213,9 +213,9 @@ def starlike(_, SLMesh):
         polyIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
         while not polyIt.isDone():
-            if not polyIt.isStarlike():
+            if polyIt.isStarlike() == False:
                 componentName = str(objectName) + \
-                    '.e[' + str(polyIt.index()) + ']'
+                    '.f[' + str(polyIt.index()) + ']'
                 starlike.append(componentName)
             if version < 2020:
                 polyIt.next(None)
