@@ -30,7 +30,7 @@ def getMainWindow():
 class UI(QtWidgets.QMainWindow):
 
     qmwInstance = None
-    version = '0.1.1'
+    version = '0.1.2'
     SLMesh = om.MSelectionList()
     commandsList = mcl.mcCommandsList
     reportOutputUI = QtWidgets.QTextEdit()
@@ -78,10 +78,10 @@ class UI(QtWidgets.QMainWindow):
         checks.addLayout(selectedModelVLayout)
 
         selectedModelLabel = QtWidgets.QLabel("Root Node")
-        selectedModelLabel.setMaximumWidth(60)
+        selectedModelLabel.setMaximumWidth(80)
 
         self.selectedTopNode_UI = QtWidgets.QLineEdit("")
-        self.selectedTopNode_UI.setMaximumWidth(200)
+        # self.selectedTopNode_UI.setMaximumWidth()
 
         selectedModelNodeButton = QtWidgets.QPushButton("Select")
         selectedModelNodeButton.setMaximumWidth(60)
@@ -155,7 +155,7 @@ class UI(QtWidgets.QMainWindow):
                 "padding: 0px; margin: 0px;")
             self.command[name] = name
             self.commandLabel[name] = QtWidgets.QLabel(label)
-            self.commandLabel[name].setMinimumWidth(120)
+            self.commandLabel[name].setMinimumWidth(180)
             self.commandLabel[name].setStyleSheet("padding: 2px;")
             self.commandCheckBox[name] = QtWidgets.QCheckBox()
 
@@ -163,7 +163,7 @@ class UI(QtWidgets.QMainWindow):
             self.commandCheckBox[name].setMaximumWidth(20)
 
             self.commandRunButton[name] = QtWidgets.QPushButton("Run")
-            self.commandRunButton[name].setMaximumWidth(30)
+            self.commandRunButton[name].setMaximumWidth(40)
 
             self.commandRunButton[name].clicked.connect(
                 partial(self.commandToRun, [obj]))
@@ -197,7 +197,7 @@ class UI(QtWidgets.QMainWindow):
         checkButtonsLayout.addWidget(checkAllButton)
 
     def getCategories(self, commands):
-        allCategories = {}
+        allCategories = set()
         for command in commands:
             allCategories.add(command['category'])
         return allCategories
@@ -215,18 +215,11 @@ class UI(QtWidgets.QMainWindow):
 
     def toggleUI(self, category):
         state = self.categoryWidget[category].isVisible()
-        if state:
-            text = u'\u21B5' if sys.version_info.major >= 3 else u'\u21B5'.encode('utf-8')
-            self.categoryCollapse[category].setText(text)
-            self.categoryWidget[category].setVisible(not state)
-            self.adjustSize()
-        else:
-            if sys.version_info.major >= 3:
-                text = u'\u2193'
-            else:
-                text = u'\u2193'.encode('utf-8')
-            self.categoryCollapse[category].setText(text)
-            self.categoryWidget[category].setVisible(not state)
+        buttonLabel = u'\u21B5' if state else u'\u2193'
+        text = buttonLabel if sys.version_info.major >= 3 else buttonLabel.encode('utf-8')
+        self.adjustSize()
+        self.categoryCollapse[category].setText(text)
+        self.categoryWidget[category].setVisible(not state)
 
     def uncheckAll(self):
         for command in self.commandsList:
@@ -240,7 +233,6 @@ class UI(QtWidgets.QMainWindow):
                 not self.commandCheckBox[name].isChecked())
 
     def checkCategory(self, category):
-
         uncheckedCategoryButtons = []
         categoryButtons = []
 
@@ -257,36 +249,38 @@ class UI(QtWidgets.QMainWindow):
             self.commandCheckBox[category].setChecked(checked)
 
     def filterNodes(self):
-        nodes = []
         self.SLMesh.clear()
-        allUsuableNodes = []
-        allNodes = cmds.ls(transforms=True)
-        for obj in allNodes:
-            if not obj in {'front', 'persp', 'top', 'side'}:
-                allUsuableNodes.append(obj)
-
-        selection = cmds.ls(sl=True)
-        topNode = self.selectedTopNode_UI.text()
+        selection = cmds.ls(selection=True, typ="transform")
         if len(selection) > 0:
             nodes = selection
         elif self.selectedTopNode_UI.text() == "":
-            nodes = allUsuableNodes
+            nodes = self.filterGetAllNodes()
         else:
-            if cmds.objExists(topNode):
-                nodes = cmds.listRelatives(
-                    topNode, allDescendents=True, typ="transform")
-                if not nodes:
-                    nodes = topNode
-                nodes.append(topNode)
-            else:
-                response = "Object in Root Node doesn't exists\n"
+            nodes = self.filterGetTopNode(topNode)
+            if not nodes:
                 self.reportOutputUI.clear()
-                self.reportOutputUI.insertPlainText(response)
+                self.reportOutputUI.insertPlainText("Object in Root Node doesn't exists\n")
         for node in nodes:
             shapes = cmds.listRelatives(node, shapes=True, typ="mesh")
             if shapes:
                 self.SLMesh.add(node)
         return nodes
+
+    def filterGetTopNode(self, topNode):
+        nodes = []
+        if cmds.objExists(topNode):
+            nodes = cmds.listRelatives(
+                topNode, allDescendents=True, typ="transform")
+        return nodes
+
+    def filterGetAllNodes(self):
+        allNodes = cmds.ls(transforms=True)
+        allUsuableNodes = []
+        for node in allNodes:
+            if not node in {'front', 'persp', 'top', 'side'}:
+                allUsuableNodes.append(node)
+        return allUsuableNodes
+
 
     def commandToRun(self, commands):
         nodes = self.filterNodes()
@@ -297,18 +291,17 @@ class UI(QtWidgets.QMainWindow):
             for currentCommand in commands:
                 command = currentCommand['func']
                 label = currentCommand['label']
-                self.errorNodes = getattr(
+                error = getattr(
                     mcc, command)(nodes, self.SLMesh)
-                if self.errorNodes:
+                if error:
                     self.reportOutputUI.insertHtml(
                         label + " -- <font color='#996666'>FAILED</font><br>")
-                    for obj in self.errorNodes:
+                    for obj in error:
                         self.reportOutputUI.insertPlainText(
                             "    " + obj + "\n")
-
                     self.errorNodesButton[command].setEnabled(True)
                     self.errorNodesButton[command].clicked.connect(
-                        partial(self.selectErrorNodes, self.errorNodes))
+                        partial(self.selectErrorNodes, error))
                     self.commandLabel[command].setStyleSheet(
                         "background-color: #664444; padding: 2px;")
                 else:
