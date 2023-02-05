@@ -274,7 +274,8 @@ def crossBorder(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not faceIt.isDone():
             U, V = set(), set()
-            Us, Vs, *_ = faceIt.getUVs()
+            UVs = faceIt.getUVs()
+            Us, Vs, = UVs[0], UVs[1]
             for i in range(len(Us)):
                 u_add = int(Us[i]) if Us[i] > 0 else int(Us[i]) - 1
                 v_add = int(Vs[i]) if Vs[i] > 0 else int(Vs[i]) - 1
