@@ -166,7 +166,7 @@ class UI(QtWidgets.QMainWindow):
             self.commandRunButton[name].setMaximumWidth(40)
 
             self.commandRunButton[name].clicked.connect(
-                partial(self.commandToRun, [obj]))
+                partial(self.commandToRun, [command]))
 
             self.errorNodesButton[name] = QtWidgets.QPushButton(
                 "Select Error Nodes")
