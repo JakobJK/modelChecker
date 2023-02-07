@@ -256,6 +256,7 @@ class UI(QtWidgets.QMainWindow):
         elif self.selectedTopNode_UI.text() == "":
             nodes = self.filterGetAllNodes()
         else:
+            topNode = self.selectedTopNode_UI.text()
             nodes = self.filterGetTopNode(topNode)
             if not nodes:
                 self.reportOutputUI.clear()
