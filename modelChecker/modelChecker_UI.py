@@ -272,6 +272,7 @@ class UI(QtWidgets.QMainWindow):
         if cmds.objExists(topNode):
             nodes = cmds.listRelatives(
                 topNode, allDescendents=True, typ="transform")
+            nodes.append(topNode)
         return nodes
 
     def filterGetAllNodes(self):
