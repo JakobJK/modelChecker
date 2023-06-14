@@ -45,7 +45,7 @@ def triangles(_, SLMesh):
             numOfEdges = faceIt.getEdges()
             if len(numOfEdges) == 3:
                 faceIndex = faceIt.index()
-                componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+                componentName = f"{str(objectName)}.f[{str(faceIndex)}]"
                 triangles.append(componentName)
             faceIt.next()
         selIt.next()
@@ -63,7 +63,7 @@ def ngons(_, SLMesh):
         while not faceIt.isDone():
             numOfEdges = faceIt.getEdges()
             if len(numOfEdges) > 4:
-                componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                componentName = f"{str(objectName)}.f[{str(faceIt.index())}"
                 ngons.append(componentName)
             faceIt.next()
         selIt.next()
@@ -76,8 +76,8 @@ def hardEdges(_, SLMesh):
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
         while not edgeIt.isDone():
-            if edgeIt.isSmooth == False and edgeIt.onBoundary() == False:
-                componentName = str(objectName) + '.e[' + str(edgeIt.index()) + ']'
+            if edgeIt.isSmooth is False and edgeIt.onBoundary() is False:
+                componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
                 hardEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -91,9 +91,8 @@ def lamina(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not faceIt.isDone():
             laminaFaces = faceIt.isLamina()
-            if laminaFaces == True:
-                faceIndex = faceIt.index()
-                componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
+            if laminaFaces is True:
+                componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
                 lamina.append(componentName)
             faceIt.next()
         selIt.next()
@@ -109,7 +108,7 @@ def zeroAreaFaces(_, SLMesh):
         while not faceIt.isDone():
             faceArea = faceIt.getArea()
             if faceArea <= 0.00000001:
-                componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
                 zeroAreaFaces.append(componentName)
             faceIt.next()
         selIt.next()
@@ -124,8 +123,7 @@ def zeroLengthEdges(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not edgeIt.isDone():
             if edgeIt.length() <= 0.00000001:
-                componentName = str(objectName) + \
-                    '.f[' + str(edgeIt.index()) + ']'
+                componentName = f"{str(objectName)}.f[{str(edgeIt.index())}]"
                 zeroLengthEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -153,7 +151,7 @@ def noneManifoldEdges(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not edgeIt.isDone():
             if edgeIt.numConnectedFaces() > 2:
-                componentName = str(objectName) + '.e[' + str(edgeIt.index()) + ']'
+                componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
                 noneManifoldEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -168,7 +166,7 @@ def openEdges(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not edgeIt.isDone():
             if edgeIt.numConnectedFaces() < 2:
-                componentName = str(objectName) + '.e[' + str(edgeIt.index()) + ']'
+                componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
                 openEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -183,8 +181,7 @@ def poles(_, SLMesh):
         objectName = selIt.getDagPath().getPath()
         while not vertexIt.isDone():
             if vertexIt.numConnectedEdges() > 5:
-                componentName = str(objectName) + \
-                    '.vtx[' + str(vertexIt.index()) + ']'
+                componentName = f"{str(objectName)}.vtx[{str(vertexIt.index())}]"
                 poles.append(componentName)
             vertexIt.next()
         selIt.next()
@@ -198,9 +195,8 @@ def starlike(_, SLMesh):
         polyIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
         while not polyIt.isDone():
-            if polyIt.isStarlike() == False:
-                componentName = str(objectName) + \
-                    '.f[' + str(polyIt.index()) + ']'
+            if polyIt.isStarlike() is False:
+                componentName = f"{str(objectName)}.f[{str(polyIt.index())}]"
                 starlike.append(componentName)
             polyIt.next()
         selIt.next()
@@ -215,9 +211,8 @@ def missingUVs(_, SLMesh):
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
         while not faceIt.isDone():
-            if faceIt.hasUVs() == False:
-                componentName = str(objectName) + \
-                    '.f[' + str(faceIt.index()) + ']'
+            if faceIt.hasUVs() is False:
+                componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
                 missingUVs.append(componentName)
             faceIt.next()
         selIt.next()
@@ -233,7 +228,7 @@ def uvRange(_, SLMesh):
     Us, Vs = mesh.getUVs()
     for i in range(len(Us)):
         if Us[i] < 0 or Us[i] > 10 or Vs[i] < 0:
-            componentName = str(objectName) + '.map[' + str(i) + ']'
+            componentName = f"{str(objectName)}.map[{str(i)}]"
             uvRange.append(componentName)
     return uvRange
 
@@ -247,7 +242,7 @@ def onBorder(_, SLMesh):
     Us, Vs = mesh.getUVs()
     for i in range(len(Us)):
         if abs(int(Us[i]) - Us[i]) < 0.00001 or abs(int(Vs[i]) - Vs[i]) < 0.00001:
-            componentName = str(objectName) + '.map[' + str(i) + ']'
+            componentName = f"{str(objectName)}.map[{str(i)}]"
             onBorder.append(componentName)
     return onBorder
 
@@ -270,7 +265,7 @@ def crossBorder(_, SLMesh):
                     U.add(uAdd)
                     V.add(vAdd)
                 if len(U) > 1 or len(V) > 1:
-                    componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                    componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
                     crossBorder.append(componentName)
                 faceIt.next()
             except:

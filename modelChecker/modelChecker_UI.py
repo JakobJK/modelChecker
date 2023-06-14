@@ -1,12 +1,12 @@
-from PySide2 import QtCore, QtWidgets
+from PySide2 import QtWidgets
 from shiboken2 import wrapInstance
 from functools import partial
 import getpass, datetime, json
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
-import moose.modelChecker.modelChecker_commands as mcc
-import moose.modelChecker.modelChecker_list as mcl
+import modelChecker.modelChecker_commands as mcc
+import modelChecker.modelChecker_list as mcl
 
 def getMainWindow():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -287,7 +287,7 @@ class UI(QtWidgets.QMainWindow):
         allNodes = cmds.ls(transforms=True)
         allUsuableNodes = []
         for node in allNodes:
-            if not node in {'front', 'persp', 'top', 'side'}:
+            if node not in {'front', 'persp', 'top', 'side'}:
                 allUsuableNodes.append(node)
         return allUsuableNodes
     
@@ -319,10 +319,10 @@ class UI(QtWidgets.QMainWindow):
 
         if self.metadataCheck.isChecked():
             metadata = self.getMetadata()
-            html += f"----------------- Scene Metadata -----------------<br>"
+            html += "----------------- Scene Metadata -----------------<br>"
             for key in metadata:
                 html += f"{key}: {metadata[key]}<br>"
-            html += f"-----------------------------------------------------<br>"
+            html += "-----------------------------------------------------<br>"
 
 
         for error in sorted(self.commandsList.keys()):
@@ -340,7 +340,7 @@ class UI(QtWidgets.QMainWindow):
                 self.commandLabel[error].setStyleSheet('background-color: #446644;')
             label = self.commandsList[error]['label']
             failed = len(self.diagnostics[error]) != 0
-            if lastFailed != failed and lastFailed != None or (failed == True and lastFailed == True):
+            if lastFailed != failed and lastFailed is not None or (failed is True and lastFailed is True):
                 html += "<br>"
             lastFailed = failed
             if failed:
