@@ -1,37 +1,22 @@
-"""
-    modelChecker v.0.1.2
-    Model sanity checker for Autodesk Maya
-    Contact: jakobjk@gmail.com
-    https://github.com/JakobJK/modelChecker
-"""
-
 from PySide2 import QtCore, QtWidgets
 from shiboken2 import wrapInstance
 from functools import partial
-
+import getpass, datetime, json
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
-import modelChecker.modelChecker_commands as mcc
-import modelChecker.modelChecker_list as mcl
-import sys
-
+import moose.modelChecker.modelChecker_commands as mcc
+import moose.modelChecker.modelChecker_list as mcl
 
 def getMainWindow():
     main_window_ptr = omui.MQtUtil.mainWindow()
-    if sys.version_info.major >= 3:
-        mainWindow = wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
-    else:
-        # Support for Maya 2016
-        mainWindow = wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
+    mainWindow = wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
     return mainWindow
 
 
 class UI(QtWidgets.QMainWindow):
-
     qmwInstance = None
-    version = '0.1.2'
-    SLMesh = om.MSelectionList()
+    version = '0.1.3'
     commandsList = mcl.mcCommandsList
     reportOutputUI = QtWidgets.QTextEdit()
     categoryLayout = {}
@@ -58,15 +43,13 @@ class UI(QtWidgets.QMainWindow):
             cls.qmwInstance.activateWindow()
 
     def __init__(self, parent=getMainWindow()):
-        super(UI, self).__init__(
-            parent, QtCore.Qt.WindowStaysOnTopHint)
+        super(UI, self).__init__(parent)
 
         self.setObjectName("ModelCheckerUI")
         self.setWindowTitle('Model Checker' + ' ' + self.version)
-
+        self.diagnostics = {}
         mainLayout = QtWidgets.QWidget(self)
         self.setCentralWidget(mainLayout)
-
         columns = QtWidgets.QHBoxLayout(mainLayout)
         report = QtWidgets.QVBoxLayout()
         checks = QtWidgets.QVBoxLayout()
@@ -81,7 +64,11 @@ class UI(QtWidgets.QMainWindow):
         selectedModelLabel.setMaximumWidth(80)
 
         self.selectedTopNode_UI = QtWidgets.QLineEdit("")
-        # self.selectedTopNode_UI.setMaximumWidth()
+        self.selectedTopNode_UI.setReadOnly(True)
+
+        clearSelectedNodeButton = QtWidgets.QPushButton("Clear")
+        clearSelectedNodeButton.setMaximumWidth(60)
+        clearSelectedNodeButton.clicked.connect(lambda: self.selectedTopNode_UI.setText(""))
 
         selectedModelNodeButton = QtWidgets.QPushButton("Select")
         selectedModelNodeButton.setMaximumWidth(60)
@@ -89,26 +76,35 @@ class UI(QtWidgets.QMainWindow):
 
         selectedModelVLayout.addWidget(selectedModelLabel)
         selectedModelVLayout.addWidget(self.selectedTopNode_UI)
+        selectedModelVLayout.addWidget(clearSelectedNodeButton)
         selectedModelVLayout.addWidget(selectedModelNodeButton)
-
-        reportBoxLayout = QtWidgets.QHBoxLayout()
-        reportLabel = QtWidgets.QLabel("Report:")
-
-        reportBoxLayout.addWidget(reportLabel)
-        report.addLayout(reportBoxLayout)
-
+        self.reportOutputUI.setReadOnly(True)
         self.reportOutputUI.setMinimumWidth(600)
-        report.addWidget(self.reportOutputUI)
 
         self.checkRunButton = QtWidgets.QPushButton("Run All Checked")
         self.checkRunButton.clicked.connect(self.sanityCheck)
 
-        report.addWidget(self.checkRunButton)
-
         clearButton = QtWidgets.QPushButton("Clear")
         clearButton.setMaximumWidth(150)
-        clearButton.clicked.connect(partial(self.reportOutputUI.clear))
-        reportBoxLayout.addWidget(clearButton)
+        clearButton.clicked.connect(self.clearReport)
+
+        runLayout = QtWidgets.QHBoxLayout()
+
+        settingsLayout = QtWidgets.QHBoxLayout()
+
+        self.metadataCheck = QtWidgets.QCheckBox()
+        self.consolidatedCheck = QtWidgets.QCheckBox()
+        settingsLayout.addWidget(QtWidgets.QLabel("Include scene metadata: "))
+        settingsLayout.addWidget(self.metadataCheck)
+        settingsLayout.addWidget(QtWidgets.QLabel("Consolidated display: "))
+        settingsLayout.addWidget(self.consolidatedCheck)
+        runLayout.addWidget(QtWidgets.QLabel("Report: "))
+        runLayout.addWidget(clearButton)
+        runLayout.addWidget(self.checkRunButton)
+        report.addLayout(settingsLayout)
+        report.addWidget(self.reportOutputUI)
+        report.addLayout(runLayout)
+
         self.resize(1000, 900)
         category = self.getCategories(self.commandsList)
 
@@ -117,8 +113,7 @@ class UI(QtWidgets.QMainWindow):
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
             self.categoryHeader[obj] = QtWidgets.QHBoxLayout()
             self.categoryButton[obj] = QtWidgets.QPushButton(obj)
-            text = '\u2193' if sys.version_info.major >= 3 else u'\u2193'.encode('utf-8')
-            self.categoryCollapse[obj] = QtWidgets.QPushButton(text)
+            self.categoryCollapse[obj] = QtWidgets.QPushButton('\u2193')
             self.categoryCollapse[obj].clicked.connect(
                 partial(self.toggleUI, obj))
             self.categoryCollapse[obj].setMaximumWidth(30)
@@ -135,12 +130,9 @@ class UI(QtWidgets.QMainWindow):
             checks.addLayout(self.categoryHeader[obj])
             checks.addWidget(self.categoryWidget[obj])
 
-        # Creates the buttons with their settings
-        for command in self.commandsList:
-            name = command['func']
-            label = command['label']
-            category = command['category']
-            check = command['defaultChecked']
+        for name in sorted(self.commandsList.keys()):
+            label = self.commandsList[name]['label']
+            category = self.commandsList[name]['category']
 
             self.commandWidget[name] = QtWidgets.QWidget()
             self.commandWidget[name].setMaximumHeight(40)
@@ -153,20 +145,18 @@ class UI(QtWidgets.QMainWindow):
             self.commandLayout[name].setContentsMargins(0, 0, 0, 0)
             self.commandWidget[name].setStyleSheet(
                 "padding: 0px; margin: 0px;")
-            self.command[name] = name
             self.commandLabel[name] = QtWidgets.QLabel(label)
             self.commandLabel[name].setMinimumWidth(180)
-            self.commandLabel[name].setStyleSheet("padding: 2px;")
             self.commandCheckBox[name] = QtWidgets.QCheckBox()
 
-            self.commandCheckBox[name].setChecked(check)
+            self.commandCheckBox[name].setChecked(False)
             self.commandCheckBox[name].setMaximumWidth(20)
 
             self.commandRunButton[name] = QtWidgets.QPushButton("Run")
             self.commandRunButton[name].setMaximumWidth(40)
 
             self.commandRunButton[name].clicked.connect(
-                partial(self.commandToRun, [command]))
+                partial(self.oneOfs, name))
 
             self.errorNodesButton[name] = QtWidgets.QPushButton(
                 "Select Error Nodes")
@@ -191,54 +181,68 @@ class UI(QtWidgets.QMainWindow):
 
         checkAllButton = QtWidgets.QPushButton("Check All")
         checkAllButton.clicked.connect(self.checkAll)
-
         checkButtonsLayout.addWidget(uncheckAllButton)
         checkButtonsLayout.addWidget(invertCheckButton)
         checkButtonsLayout.addWidget(checkAllButton)
+        self.loadSettings()
+        self.consolidatedCheck.stateChanged.connect(self.createReport)
+        self.metadataCheck.stateChanged.connect(self.createReport)
+
+    def closeEvent(self, event):
+        self.saveSettings()
+        super(UI, self).closeEvent(event)
 
     def getCategories(self, commands):
         allCategories = set()
-        for command in commands:
+        for command in commands.values():
             allCategories.add(command['category'])
-        return allCategories
+        categories = list(allCategories)
+        categories.sort(key=str.lower)
+        return categories
 
     def setTopNode(self):
         sel = cmds.ls(selection=True)
-        self.selectedTopNode_UI.setText(sel[0])
+        if len(sel) == 0:
+            cmds.warning("Please select a node")
+        else:
+            self.selectedTopNode_UI.setText(sel[0])
 
     def checkState(self, name):
         return self.commandCheckBox[name].checkState()
 
     def checkAll(self):
         for command in self.commandsList:
-            self.commandCheckBox[command['func']].setChecked(True)
+            self.commandCheckBox[command].setChecked(True)
 
     def toggleUI(self, category):
         state = self.categoryWidget[category].isVisible()
         buttonLabel = u'\u21B5' if state else u'\u2193'
-        text = buttonLabel if sys.version_info.major >= 3 else buttonLabel.encode('utf-8')
         self.adjustSize()
-        self.categoryCollapse[category].setText(text)
+        self.categoryCollapse[category].setText(buttonLabel)
         self.categoryWidget[category].setVisible(not state)
 
     def uncheckAll(self):
-        for command in self.commandsList:
-            name = command['func']
+        for name in self.commandsList:
             self.commandCheckBox[name].setChecked(False)
 
     def invertCheck(self):
-        for command in self.commandsList:
-            name = command['func']
+        for name in self.commandsList.keys():
             self.commandCheckBox[name].setChecked(
                 not self.commandCheckBox[name].isChecked())
+            
+    def clearReport(self):
+        self.diagnostics = {}
+        for command in self.commandsList.keys():
+            self.errorNodesButton[command].setEnabled(False)
+            self.commandLabel[command].setStyleSheet('background-color: none;')
+        self.reportOutputUI.clear()
+
 
     def checkCategory(self, category):
         uncheckedCategoryButtons = []
         categoryButtons = []
-
-        for command in self.commandsList:
-            name = command['func']
-            cat = command['category']
+        for name in self.commandsList.keys():
+            cat = self.commandsList[name]['category']
             if cat == category:
                 categoryButtons.append(name)
                 if self.commandCheckBox[name].isChecked():
@@ -249,30 +253,34 @@ class UI(QtWidgets.QMainWindow):
             self.commandCheckBox[category].setChecked(checked)
 
     def filterNodes(self):
-        self.SLMesh.clear()
         selection = cmds.ls(selection=True, typ="transform")
         if len(selection) > 0:
-            nodes = selection
+            nodes = []
+            for node in selection:
+                relatives = cmds.listRelatives(node, allDescendents=True, typ="transform")
+                if relatives:
+                    nodes.extend(relatives)
+                nodes.append(node)
         elif self.selectedTopNode_UI.text() == "":
             nodes = self.filterGetAllNodes()
         else:
-            topNode = self.selectedTopNode_UI.text()
-            nodes = self.filterGetTopNode(topNode)
+            nodes = self.filterGetTopNode(self.selectedTopNode_UI.text())
             if not nodes:
                 self.reportOutputUI.clear()
                 self.reportOutputUI.insertPlainText("Object in Root Node doesn't exists\n")
-        for node in nodes:
-            shapes = cmds.listRelatives(node, shapes=True, typ="mesh")
-            if shapes:
-                self.SLMesh.add(node)
         return nodes
 
     def filterGetTopNode(self, topNode):
         nodes = []
         if cmds.objExists(topNode):
-            nodes = cmds.listRelatives(
-                topNode, allDescendents=True, typ="transform")
             nodes.append(topNode)
+            children = cmds.listRelatives(
+                topNode, allDescendents=True, typ="transform")
+            if children:
+                nodes.extend(children)
+        else:
+            self.selectedTopNode_UI.clear()
+            nodes = self.filterGetAllNodes()
         return nodes
 
     def filterGetAllNodes(self):
@@ -282,54 +290,121 @@ class UI(QtWidgets.QMainWindow):
             if not node in {'front', 'persp', 'top', 'side'}:
                 allUsuableNodes.append(node)
         return allUsuableNodes
+    
+    def oneOfs(self, command):
+        diagnostics = self.commandToRun([command], self.filterNodes())
+        self.diagnostics[command] = diagnostics[command]
+        self.createReport()
 
+    def commandToRun(self, commands, nodes):
+        diagnostics = {}
+        SLMesh = om.MSelectionList()       
+        for node in nodes:
+            shapes = cmds.listRelatives(node, shapes=True, typ="mesh")
+            if shapes:
+                SLMesh.add(node)
+        for command in commands:
+            errors = getattr(
+                mcc, command)(nodes, SLMesh)
+            diagnostics[command] = errors
+        SLMesh.clear()
+        return diagnostics
 
-    def commandToRun(self, commands):
-        nodes = self.filterNodes()
+    def createReport(self):
         self.reportOutputUI.clear()
-        if len(nodes) == 0:
-            self.reportOutputUI.insertPlainText("Error - No nodes to check\n")
-        else:
-            for currentCommand in commands:
-                command = currentCommand['func']
-                label = currentCommand['label']
-                error = getattr(
-                    mcc, command)(nodes, self.SLMesh)
-                if error:
-                    self.reportOutputUI.insertHtml(
-                        label + " -- <font color='#996666'>FAILED</font><br>")
-                    for obj in error:
-                        self.reportOutputUI.insertPlainText(
-                            "    " + obj + "\n")
-                    self.errorNodesButton[command].setEnabled(True)
-                    self.errorNodesButton[command].clicked.connect(
-                        partial(self.selectErrorNodes, error))
-                    self.commandLabel[command].setStyleSheet(
-                        "background-color: #664444; padding: 2px;")
+        lastFailed = None
+        consolidated = self.consolidatedCheck.isChecked()
+
+        html = ""
+
+        if self.metadataCheck.isChecked():
+            metadata = self.getMetadata()
+            html += f"----------------- Scene Metadata -----------------<br>"
+            for key in metadata:
+                html += f"{key}: {metadata[key]}<br>"
+            html += f"-----------------------------------------------------<br>"
+
+
+        for error in sorted(self.commandsList.keys()):
+            if error not in self.diagnostics:
+                self.errorNodesButton[error].setEnabled(False)
+                self.commandLabel[error].setStyleSheet('background-color: none;')
+                continue
+            failed = len(self.diagnostics[error]) != 0
+            if failed:
+                self.errorNodesButton[error].setEnabled(True)
+                self.errorNodesButton[error].clicked.connect(partial(self.selectErrorNodes, self.diagnostics[error]))
+                self.commandLabel[error].setStyleSheet('background-color: #664444;')
+            else:
+                self.errorNodesButton[error].setEnabled(False)
+                self.commandLabel[error].setStyleSheet('background-color: #446644;')
+            label = self.commandsList[error]['label']
+            failed = len(self.diagnostics[error]) != 0
+            if lastFailed != failed and lastFailed != None or (failed == True and lastFailed == True):
+                html += "<br>"
+            lastFailed = failed
+            if failed:
+                html += f"&#10752; {label}<font color=#9c4f4f> [ FAILED ]</font><br>"
+            else:
+                html += f"{label}<font color=#64a65a> [ SUCCESS ]</font><br>" 
+            
+            if failed:
+                if consolidated and "." in self.diagnostics[error][0]:
+                    store = {}
+                    for node in self.diagnostics[error]:
+                        name = node.split(".")[0]
+                        store[name] = store.get(name, 0) + 1
+                    for node in store:
+                        word = "issues" if store[node] > 1 else "issue"
+                        html += f"&#9492;&#9472; {node} - <font color=#9c4f4f>{store[node]} {word}</font><br>"
                 else:
-                    self.commandLabel[command].setStyleSheet(
-                        "background-color: #446644; padding: 2px;")
-                    self.reportOutputUI.insertHtml(
-                        label + " -- <font color='#669966'>SUCCESS</font><br>")
-                    self.errorNodesButton[command].setEnabled(False)
+                    for node in self.diagnostics[error]:
+                        html += f"&#9492;&#9472; {node}<br>"
+        self.reportOutputUI.insertHtml(html)
+
+    def getMetadata(self):
+        return {
+            "user": getpass.getuser(),
+            "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "mayaVersion": cmds.about(iv=True),
+            "mayaScene": cmds.file(q=True, sn=True) or "Untitled",
+        }
 
     def sanityCheck(self):
-        self.reportOutputUI.clear()
         checkedCommands = []
-        for command in self.commandsList:
-            name = command['func']
+        nodes = self.filterNodes()
+        if not nodes:
+            self.reportOutputUI.clear()
+            self.reportOutputUI.insertHtml("No nodes to check.")
+            return
+        for name in self.commandsList:
             if self.commandCheckBox[name].isChecked():
-                checkedCommands.append(command)
-            else:
-                self.commandLabel[name].setStyleSheet(
-                    "background-color: none; padding: 2px;")
-                self.errorNodesButton[name].setEnabled(False)
-        if checkedCommands:
-            self.commandToRun(checkedCommands)
+                checkedCommands.append(name)
+        diagnostics = self.commandToRun(checkedCommands, nodes)
+        self.diagnostics = diagnostics
+        self.createReport()
 
     def selectErrorNodes(self, nodes):
         cmds.select(nodes)
 
+    def saveSettings(self):
+        settings = {}
+        settings['consolidated'] = self.consolidatedCheck.isChecked()
+        settings['metadata'] = self.metadataCheck.isChecked()
+        settings['commands'] = {}
+        for name in self.commandsList:
+            settings['commands'][name] = self.commandCheckBox[name].isChecked()
+        cmds.optionVar(sv=("modelCheckerSettings", json.dumps(settings)))
+    
+    def loadSettings(self):
+        settings = cmds.optionVar(q="modelCheckerSettings")
+        if settings:
+            settings = json.loads(settings)
+            self.consolidatedCheck.setChecked(settings['consolidated'])
+            self.metadataCheck.setChecked(settings['metadata'])
+            for name in settings['commands']:
+                self.commandCheckBox[name].setChecked(settings['commands'][name])
+                
 if __name__ == '__main__':
     try:
         win.close()

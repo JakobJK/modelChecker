@@ -1,19 +1,14 @@
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
-import sys
 
-release = cmds.about(version=True)
-version = 2023 if 'Preview' in release else int(cmds.about(version=True))
-numbers = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }
-
-def trailingNumbers(nodes, SLMesh):
+def trailingNumbers(nodes, _):
     trailingNumbers = []
     for node in nodes:
-        if node[-1] in numbers:
+        if node[-1].isdigit():
             trailingNumbers.append(node)
     return trailingNumbers
 
-def duplicatedNames(nodes, SLMesh):
+def duplicatedNames(nodes, _):
     duplicatedNames = []
     for node in nodes:
         if '|' in node:
@@ -21,7 +16,7 @@ def duplicatedNames(nodes, SLMesh):
     return duplicatedNames
 
 
-def namespaces(nodes, SLMesh):
+def namespaces(nodes, _):
     namespaces = []
     for node in nodes:
         if ':' in node:
@@ -29,7 +24,7 @@ def namespaces(nodes, SLMesh):
     return namespaces
 
 
-def shapeNames(nodes, SLMesh):
+def shapeNames(nodes, _):
     shapeNames = []
     for node in nodes:
         new = node.split('|')
@@ -52,16 +47,15 @@ def triangles(_, SLMesh):
                 faceIndex = faceIt.index()
                 componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
                 triangles.append(componentName)
-            if version < 2020:
-                faceIt.next(None)
-            else:
-                faceIt.next()
+            faceIt.next()
         selIt.next()
     return triangles
 
 
 def ngons(_, SLMesh):
     ngons = []
+    if SLMesh.isEmpty():
+        return ngons
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
@@ -71,10 +65,7 @@ def ngons(_, SLMesh):
             if len(numOfEdges) > 4:
                 componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
                 ngons.append(componentName)
-            if version < 2020:
-                faceIt.next(None)
-            else:
-                faceIt.next()
+            faceIt.next()
         selIt.next()
     return ngons
 
@@ -104,10 +95,7 @@ def lamina(_, SLMesh):
                 faceIndex = faceIt.index()
                 componentName = str(objectName) + '.f[' + str(faceIndex) + ']'
                 lamina.append(componentName)
-            if version < 2020:
-                faceIt.next(None)
-            else:
-                faceIt.next()
+            faceIt.next()
         selIt.next()
     return lamina
 
@@ -123,10 +111,7 @@ def zeroAreaFaces(_, SLMesh):
             if faceArea <= 0.00000001:
                 componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
                 zeroAreaFaces.append(componentName)
-            if version < 2020:
-                faceIt.next(None)
-            else:
-                faceIt.next()
+            faceIt.next()
         selIt.next()
     return zeroAreaFaces
 
@@ -147,7 +132,7 @@ def zeroLengthEdges(_, SLMesh):
     return zeroLengthEdges
 
 
-def selfPenetratingUVs(transformNodes, SLMesh):
+def selfPenetratingUVs(transformNodes, _):
     selfPenetratingUVs = []
     for node in transformNodes:
         shape = cmds.listRelatives(node, shapes=True, fullPath=True)
@@ -217,14 +202,13 @@ def starlike(_, SLMesh):
                 componentName = str(objectName) + \
                     '.f[' + str(polyIt.index()) + ']'
                 starlike.append(componentName)
-            if version < 2020:
-                polyIt.next(None)
-            else:
-                polyIt.next()
+            polyIt.next()
         selIt.next()
     return starlike
 
 def missingUVs(_, SLMesh):
+    if SLMesh.isEmpty():
+        return []
     missingUVs = []
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
@@ -235,14 +219,13 @@ def missingUVs(_, SLMesh):
                 componentName = str(objectName) + \
                     '.f[' + str(faceIt.index()) + ']'
                 missingUVs.append(componentName)
-            if version < 2020:
-                faceIt.next(None)
-            else:
-                faceIt.next()
+            faceIt.next()
         selIt.next()
     return missingUVs
 
 def uvRange(_, SLMesh):
+    if SLMesh.isEmpty():
+        return []
     uvRange = []
     selIt = om.MItSelectionList(SLMesh)
     mesh = om.MFnMesh(selIt.getDagPath())
@@ -255,6 +238,8 @@ def uvRange(_, SLMesh):
     return uvRange
 
 def onBorder(_, SLMesh):
+    if SLMesh.isEmpty():
+        return []
     onBorder = []
     selIt = om.MItSelectionList(SLMesh)
     mesh = om.MFnMesh(selIt.getDagPath())
@@ -268,30 +253,33 @@ def onBorder(_, SLMesh):
 
 def crossBorder(_, SLMesh):
     crossBorder = []
+    if SLMesh.isEmpty():
+        return crossBorder
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
         objectName = selIt.getDagPath().getPath()
         while not faceIt.isDone():
             U, V = set(), set()
-            UVs = faceIt.getUVs()
-            Us, Vs, = UVs[0], UVs[1]
-            for i in range(len(Us)):
-                u_add = int(Us[i]) if Us[i] > 0 else int(Us[i]) - 1
-                v_add = int(Vs[i]) if Vs[i] > 0 else int(Vs[i]) - 1
-                U.add(u_add)
-                V.add(v_add)
-            if len(U) > 1 or len(V) > 1:
-                componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
-                crossBorder.append(componentName)
-            if version < 2020:
-                faceIt.next(None)
-            else:
+            try:
+                UVs = faceIt.getUVs()
+                Us, Vs, = UVs[0], UVs[1]
+                for i in range(len(Us)):
+                    uAdd = int(Us[i]) if Us[i] > 0 else int(Us[i]) - 1
+                    vAdd = int(Vs[i]) if Vs[i] > 0 else int(Vs[i]) - 1
+                    U.add(uAdd)
+                    V.add(vAdd)
+                if len(U) > 1 or len(V) > 1:
+                    componentName = str(objectName) + '.f[' + str(faceIt.index()) + ']'
+                    crossBorder.append(componentName)
+                faceIt.next()
+            except:
+                cmds.warning("Face " + str(faceIt.index()) + " has no UVs")
                 faceIt.next()
         selIt.next()
     return crossBorder
 
-def unfrozenTransforms(nodes, SLMesh):
+def unfrozenTransforms(nodes, _):
     unfrozenTransforms = []
     for node in nodes:
         translation = cmds.xform(
@@ -320,7 +308,7 @@ def shaders(transformNodes, _):
                 shaders.append(node)
     return shaders
 
-def history(nodes, SLMesh):
+def history(nodes, _):
     history = []
     for node in nodes:
         shape = cmds.listRelatives(node, shapes=True, fullPath=True)
@@ -330,7 +318,7 @@ def history(nodes, SLMesh):
                 history.append(node)
     return history
 
-def uncenteredPivots(nodes, SLMesh):
+def uncenteredPivots(nodes, _):
     uncenteredPivots = []
     for node in nodes:
         if cmds.xform(node, q=1, ws=1, rp=1) != [0, 0, 0]:
@@ -338,7 +326,7 @@ def uncenteredPivots(nodes, SLMesh):
     return uncenteredPivots
 
 
-def emptyGroups(nodes, SLMesh):
+def emptyGroups(nodes, _):
     emptyGroups = []
     for node in nodes:
         children = cmds.listRelatives(node, ad=True)
@@ -347,14 +335,14 @@ def emptyGroups(nodes, SLMesh):
     return emptyGroups
 
 
-def parentGeometry(transformNodes, SLMesh):
+def parentGeometry(transformNodes, _):
     parentGeometry = []
     for node in transformNodes:
         parents = cmds.listRelatives(node, p=True, fullPath=True)
         if parents:
             for parent in parents:
                 children = cmds.listRelatives(parent, fullPath=True)
-                for parent in children:
-                    if cmds.nodeType(parent) == 'mesh':
+                for child in children:
+                    if cmds.nodeType(child) == 'mesh':
                         parentGeometry.append(node)
     return parentGeometry

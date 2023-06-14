@@ -1,160 +1,106 @@
-mcCommandsList = [
-    {
-        'func': 'trailingNumbers',
+mcCommandsList = {
+    "trailingNumbers": {
         'label': 'Trailing Numbers',
         'category': 'naming',
-        'defaultChecked': True
     },
-    {
-        'func': 'duplicatedNames',
+    "duplicatedNames": {
         'label': 'Duplicated Names',
         'category': 'naming',
-        'defaultChecked': True
     },
-    {
-        'func': 'shapeNames',
+    "shapeNames":{
         'label': 'Shape Names',
         'category': 'naming',
-        'defaultChecked': True
     },
-    {
-        'func': 'namespaces',
+    "namespaces": {
         'label': 'Namespaces',
         'category': 'naming',
-        'defaultChecked': True
     },
-
-    {
-        'func': 'layers',
+    "layers": {
         'label': 'Layers',
-        'category': 'general',
-        'defaultChecked': True
+        'category': 'general',  
     },
-    {
-        'func': 'history',
+    "history": {
         'label': 'History',
         'category': 'general',
-        'defaultChecked': True
     },
-    {
-        'func': 'shaders',
+    "shaders": {
         'label': 'Shaders',
         'category': 'general',
-        'defaultChecked': True
     },
-    {
-        'func': 'unfrozenTransforms',
+    "unfrozenTransforms": {
         'label': 'Unfrozen Transforms',
         'category': 'general',
-        'defaultChecked': True
     },
-    {
-        'func': 'uncenteredPivots',
+    "uncenteredPivots": {
         'label': 'Uncentered Pivots',
         'category': 'general',
-        'defaultChecked': True
     },
-    {
-        'func': 'parentGeometry',
+    "parentGeometry": {
         'label': 'Parent Geometry',
         'category': 'general',
-        'defaultChecked': True
     },
-    {
-        'func': 'emptyGroups',
+    "emptyGroups": {
         'label': 'Empty Groups',
         'category': 'general',
-        'defaultChecked': True
     },
-    {
-        'func': 'triangles',
+    "triangles": {
         'label': 'Triangles',
         'category': 'topology',
-        'defaultChecked': False
     },
-    {
-        'func': 'ngons',
+    "ngons": {
         'label': 'Ngons',
         'category': 'topology',
-        'defaultChecked': False
     },
-    {
-        'func': 'openEdges',
+    "openEdges": {
         'label': 'Open Edges',
         'category': 'topology',
-        'defaultChecked': False
     },
-    {
-        'func': 'poles',
+    "poles":{
         'label': 'Poles',
         'category': 'topology',
-        'defaultChecked': False
     },
-    {
-        'func': 'hardEdges',
+    "hardEdges": {
         'label': 'Hard Edges',
         'category': 'topology',
-        'defaultChecked': False
     },
-
-    {
-        'func': 'lamina',
+    "lamina": {
         'label': 'Lamina',
-        'category': 'topology',
-        'defaultChecked': False
+        'category': 'topology',  
     },
-    {
-        'func': 'zeroAreaFaces',
+    "zeroAreaFaces":{
         'label': 'Zero Area Faces',
         'category': 'topology',
-        'defaultChecked': False
     },
-    {
-        'func': 'zeroLengthEdges',
+    "zeroLengthEdges":{
         'label': 'Zero Length Edges',
         'category': 'topology',
-        'defaultChecked': False
     },
-    {
-        'func': 'noneManifoldEdges',
+    "noneManifoldEdges":{
         'label': 'None Manifold Edges',
         'category': 'topology',
-        'defaultChecked': False
     },
-    {
-        'func': 'starlike',
+    "starlike": {
         'label': 'Starlike',
         'category': 'topology',
-        'defaultChecked': False
     },
-    {
-        'func': 'selfPenetratingUVs',
+    "selfPenetratingUVs":{
         'label': 'Self Penetrating UVs',
         'category': 'UVs',
-        'defaultChecked': False
     },
-    {
-        'func': 'missingUVs',
+    "missingUVs":{
         'label': 'Missing UVs',
         'category': 'UVs',
-        'defaultChecked': False
     },
-    {
-        'func': 'uvRange',
+    "uvRange":{
         'label': 'UV Range',
         'category': 'UVs',
-        'defaultChecked': False
     },
-    {
-        'func': 'crossBorder',
+    "crossBorder":{
         'label': 'Cross Border',
         'category': 'UVs',
-        'defaultChecked': False
     },
-    {
-        'func': 'onBorder',
+    "onBorder": {
         'label': 'On Border',
-        'category': 'UVs',
-        'defaultChecked': False
+        'category': 'UVs',   
     }
-]
+}
