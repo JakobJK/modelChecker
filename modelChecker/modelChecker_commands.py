@@ -324,8 +324,7 @@ def uncenteredPivots(nodes, _):
 def emptyGroups(nodes, _):
     emptyGroups = []
     for node in nodes:
-        children = cmds.listRelatives(node, ad=True)
-        if not children:
+        if not children := cmds.listRelatives(node, ad=True)
             emptyGroups.append(node)
     return emptyGroups
 
@@ -333,8 +332,7 @@ def emptyGroups(nodes, _):
 def parentGeometry(transformNodes, _):
     parentGeometry = []
     for node in transformNodes:
-        parents = cmds.listRelatives(node, p=True, fullPath=True)
-        if parents:
+        if parents := cmds.listRelatives(node, p=True, fullPath=True)
             for parent in parents:
                 children = cmds.listRelatives(parent, fullPath=True)
                 for child in children:
