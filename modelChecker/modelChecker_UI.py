@@ -1,7 +1,7 @@
-from PySide2 import QtWidgets
+from PySide2 import QtWidgets, QtGui, QtCore
 from shiboken2 import wrapInstance
 from functools import partial
-import getpass, datetime, json
+import json
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
@@ -18,13 +18,11 @@ class UI(QtWidgets.QMainWindow):
     qmwInstance = None
     version = '0.1.3'
     commandsList = mcl.mcCommandsList
-    reportOutputUI = QtWidgets.QTextEdit()
     categoryLayout = {}
     categoryWidget = {}
     categoryButton = {}
     categoryHeader = {}
     categoryCollapse = {}
-    command = {}
     commandWidget = {}
     commandLayout = {}
     commandLabel = {}
@@ -46,68 +44,197 @@ class UI(QtWidgets.QMainWindow):
         super(UI, self).__init__(parent)
 
         self.setObjectName("ModelCheckerUI")
-        self.setWindowTitle('Model Checker' + ' ' + self.version)
+        self.setWindowTitle(f"Model Checker {self.version}")
         self.diagnostics = {}
-        mainLayout = QtWidgets.QWidget(self)
-        self.setCentralWidget(mainLayout)
-        columns = QtWidgets.QHBoxLayout(mainLayout)
+        self.currentContext = None
+        self.contexts = {}
+        self.contextRowItems = {}
+
+        mainWidget = QtWidgets.QWidget(self)
+        self.setCentralWidget(mainWidget)
+        mainLayout = QtWidgets.QVBoxLayout(mainWidget)  
+        report = self.buildContextUI()
+        checks = self.buildChecksList()
+        left = QtWidgets.QWidget()
+        right = QtWidgets.QWidget()
+        splitter = QtWidgets.QSplitter()
+        splitter.addWidget(left)
+        splitter.addWidget(right)
+        left.setLayout(checks)
+        right.setLayout(report)
+        mainLayout.addWidget(splitter)
+
+        self.resize(1000, 900)
+
+        self.loadSettings()
+        
+        self.consolidatedCheck.stateChanged.connect(self.createReport)
+
+    def contextPopupMenu(self, position):
+        contextMenu = QtWidgets.QMenu(self)
+
+        checkSelectedContexts = QtWidgets.QAction("Check Selected Contexts", contextMenu)
+        uncheckSelectedContexts = QtWidgets.QAction("Uncheck Selected Contexts", contextMenu)
+        runChecksOnSelectedContexts = QtWidgets.QAction("Run Checks on Selected Contexts", contextMenu)
+        addSelectedNodesAsNewContexts = QtWidgets.QAction("Add Selected Nodes as New Contexts", contextMenu)
+        removeSelectedContexts = QtWidgets.QAction("Remove Selected Contexts", contextMenu)
+
+        checkSelectedContexts.triggered.connect(self.checkSelected)
+        uncheckSelectedContexts.triggered.connect(self.uncheckSelected)
+        runChecksOnSelectedContexts.triggered.connect(self.runChecksOnSelectedContexts)
+        addSelectedNodesAsNewContexts.triggered.connect(self.addSelectedNodesAsNewContexts)
+        removeSelectedContexts.triggered.connect(self.removeSelectedContexts)
+
+        contextMenu.addAction(checkSelectedContexts)
+        contextMenu.addAction(uncheckSelectedContexts)
+        contextMenu.addSeparator()
+        contextMenu.addAction(runChecksOnSelectedContexts)
+        contextMenu.addSeparator()
+        contextMenu.addAction(addSelectedNodesAsNewContexts)
+        contextMenu.addAction(removeSelectedContexts)
+        contextMenu.exec_(self.contextTable.viewport().mapToGlobal(position))
+    
+
+    def checkSelected(self):
+        indexes = self.contextTable.selectionModel().selectedRows()
+        for index in indexes:
+            rowIdx = index.row()
+            if rowIdx > 1:
+                contextItem = self.contextTable.item(rowIdx, 0)
+                contextItem.setCheckState(QtCore.Qt.Checked)
+    
+    def uncheckSelected(self):
+        indexes = self.contextTable.selectionModel().selectedRows()
+        for index in indexes:
+            rowIdx = index.row()
+            if rowIdx > 1:
+                contextItem = self.contextTable.item(rowIdx, 0)
+                contextItem.setCheckState(QtCore.Qt.Unchecked)
+
+    def runChecksOnSelectedContexts(self):
+        for index in range(self.contextTable.rowCount()):
+            contextItem = self.contextTable.item(index, 0)
+            if contextItem.checkState() == QtCore.Qt.Checked:
+                print("You selected: Item", index)
+    
+    def addSelectedNodesAsNewContexts(self):
+        selectedNodes = cmds.ls(selection=True)
+        for node in selectedNodes:
+            self.contextRowItems[node] = QtWidgets.QTableWidgetItem(node)
+            contextItem = self.contextRowItems[node]
+            contextItem.setFlags(contextItem.flags() | QtCore.Qt.ItemIsUserCheckable)
+            contextItem.setCheckState(QtCore.Qt.Checked)
+            newRowIdx = self.contextTable.rowCount()
+            self.contextTable.insertRow(newRowIdx)
+            self.contextTable.setItem(newRowIdx, 0, contextItem)
+    
+
+
+    def checkForParent(self, node):
+
+        current_node = node
+        while current_node:
+            if current_node := cmds.listRelatives(node, parent=True):
+                uuid = cmds.ls(current_node[0], uuid=True)[0]
+                if uuid in self.contexts:
+                    return current_node[0]
+
+            
+
+
+    def removeSelectedContexts(self):
+        idxs = self.contextTable.selectionModel().selectedRows()
+        for idx in sorted(idxs, reverse=True):
+            self.contextTable.removeRow(idx.row())
+
+    def onItemClicked(self, item):
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
+        if modifiers == QtCore.Qt.NoModifier:
+            print("You clicked: ", item.text())
+
+
+    def buildContextUI(self):
+        """" Code for building the context UI"""
         report = QtWidgets.QVBoxLayout()
-        checks = QtWidgets.QVBoxLayout()
+        self.contextTable = QtWidgets.QTableWidget()
 
-        columns.addLayout(checks)
-        columns.addLayout(report)
+        self.contextTable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.contextTable.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
-        selectedModelVLayout = QtWidgets.QHBoxLayout()
-        checks.addLayout(selectedModelVLayout)
+        # Configure the table        
+        # 
+        defaultContexts = ["Selection", "Global"]
+        contextHeaders = ['CONTEXT', 'TESTS']
+        self.contextTable.setColumnCount(len(contextHeaders))
+        self.contextTable.setHorizontalHeaderLabels(contextHeaders)
+        self.contextTable.verticalHeader().setVisible(False)
+        self.contextTable.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
-        selectedModelLabel = QtWidgets.QLabel("Root Node")
-        selectedModelLabel.setMaximumWidth(80)
+        self.contextTable.setColumnWidth(0, 10)
+        self.contextTable.setColumnWidth(2, 10)
 
-        self.selectedTopNode_UI = QtWidgets.QLineEdit("")
-        self.selectedTopNode_UI.setReadOnly(True)
+        # Create context menu for the table
+        self.contextTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.contextTable.itemClicked.connect(self.onItemClicked)
+        self.contextTable.customContextMenuRequested.connect(self.contextPopupMenu)
 
-        clearSelectedNodeButton = QtWidgets.QPushButton("Clear")
-        clearSelectedNodeButton.setMaximumWidth(60)
-        clearSelectedNodeButton.clicked.connect(lambda: self.selectedTopNode_UI.setText(""))
 
-        selectedModelNodeButton = QtWidgets.QPushButton("Select")
-        selectedModelNodeButton.setMaximumWidth(60)
-        selectedModelNodeButton.clicked.connect(self.setTopNode)
+        for idx, context in enumerate(defaultContexts):
+            self.contextRowItems[context] = QtWidgets.QTableWidgetItem(context)
+            contextItem = self.contextRowItems[context]
+            contextItem.setFlags(contextItem.flags() & ~QtCore.Qt.ItemIsEditable)
 
-        selectedModelVLayout.addWidget(selectedModelLabel)
-        selectedModelVLayout.addWidget(self.selectedTopNode_UI)
-        selectedModelVLayout.addWidget(clearSelectedNodeButton)
-        selectedModelVLayout.addWidget(selectedModelNodeButton)
+            # if the contect is selection, let's make the contextItem uncheckable
+            if context == "Selection" or context == "Global":
+                contextItem.setFlags(contextItem.flags() & ~QtCore.Qt.ItemIsUserCheckable)
+            else:
+                contextItem.setFlags(contextItem.flags() | QtCore.Qt.ItemIsUserCheckable)
+                
+            if context == "Selection":
+                contextItem.setCheckState(QtCore.Qt.Unchecked)
+            else:
+                contextItem.setCheckState(QtCore.Qt.Checked)
+            self.contextTable.insertRow(idx)
+            self.contextTable.setItem(idx, 0, contextItem)
+
+        self.reportOutputUI = QtWidgets.QTextEdit()
         self.reportOutputUI.setReadOnly(True)
         self.reportOutputUI.setMinimumWidth(600)
 
         self.checkRunButton = QtWidgets.QPushButton("Run All Checked")
-        self.checkRunButton.clicked.connect(self.sanityCheck)
+        self.consolidatedCheck = QtWidgets.QCheckBox()
 
         clearButton = QtWidgets.QPushButton("Clear")
         clearButton.setMaximumWidth(150)
-        clearButton.clicked.connect(self.clearReport)
-
-        runLayout = QtWidgets.QHBoxLayout()
-
+        
         settingsLayout = QtWidgets.QHBoxLayout()
-
-        self.metadataCheck = QtWidgets.QCheckBox()
-        self.consolidatedCheck = QtWidgets.QCheckBox()
-        settingsLayout.addWidget(QtWidgets.QLabel("Include scene metadata: "))
-        settingsLayout.addWidget(self.metadataCheck)
         settingsLayout.addWidget(QtWidgets.QLabel("Consolidated display: "))
         settingsLayout.addWidget(self.consolidatedCheck)
+        
+        runLayout = QtWidgets.QHBoxLayout()
         runLayout.addWidget(QtWidgets.QLabel("Report: "))
         runLayout.addWidget(clearButton)
         runLayout.addWidget(self.checkRunButton)
+
+        
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)    
+        splitter.addWidget(self.contextTable)
+        splitter.addWidget(self.reportOutputUI)
+        splitter.setSizes([200, 800])
         report.addLayout(settingsLayout)
-        report.addWidget(self.reportOutputUI)
+        report.addWidget(splitter)
         report.addLayout(runLayout)
 
-        self.resize(1000, 900)
-        category = self.getCategories(self.commandsList)
+        self.checkRunButton.clicked.connect(self.sanityCheck)
+        clearButton.clicked.connect(self.clearReport)
+        
+        return report
 
+    def buildChecksList(self):
+        """" Code for building the checks list UI"""
+        checks = QtWidgets.QVBoxLayout()
+        category = self.getCategories(self.commandsList)
+        
         for obj in category:
             self.categoryWidget[obj] = QtWidgets.QWidget()
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
@@ -169,7 +296,6 @@ class UI(QtWidgets.QMainWindow):
             self.commandLayout[name].addWidget(self.errorNodesButton[name])
 
         checks.addStretch()
-
         checkButtonsLayout = QtWidgets.QHBoxLayout()
         checks.addLayout(checkButtonsLayout)
 
@@ -178,15 +304,17 @@ class UI(QtWidgets.QMainWindow):
 
         invertCheckButton = QtWidgets.QPushButton("Invert")
         invertCheckButton.clicked.connect(self.invertCheck)
+        failedCheckButton = QtWidgets.QPushButton("Check Failed Only")
+        failedCheckButton.clicked.connect(self.selectFailed)
 
         checkAllButton = QtWidgets.QPushButton("Check All")
         checkAllButton.clicked.connect(self.checkAll)
         checkButtonsLayout.addWidget(uncheckAllButton)
         checkButtonsLayout.addWidget(invertCheckButton)
+        checkButtonsLayout.addWidget(failedCheckButton)
+
         checkButtonsLayout.addWidget(checkAllButton)
-        self.loadSettings()
-        self.consolidatedCheck.stateChanged.connect(self.createReport)
-        self.metadataCheck.stateChanged.connect(self.createReport)
+        return checks
 
     def closeEvent(self, event):
         self.saveSettings()
@@ -200,13 +328,6 @@ class UI(QtWidgets.QMainWindow):
         categories.sort(key=str.lower)
         return categories
 
-    def setTopNode(self):
-        sel = cmds.ls(selection=True)
-        if len(sel) == 0:
-            cmds.warning("Please select a node")
-        else:
-            self.selectedTopNode_UI.setText(sel[0])
-
     def checkState(self, name):
         return self.commandCheckBox[name].checkState()
 
@@ -217,7 +338,6 @@ class UI(QtWidgets.QMainWindow):
     def toggleUI(self, category):
         state = self.categoryWidget[category].isVisible()
         buttonLabel = u'\u21B5' if state else u'\u2193'
-        self.adjustSize()
         self.categoryCollapse[category].setText(buttonLabel)
         self.categoryWidget[category].setVisible(not state)
 
@@ -242,8 +362,7 @@ class UI(QtWidgets.QMainWindow):
         uncheckedCategoryButtons = []
         categoryButtons = []
         for name in self.commandsList.keys():
-            cat = self.commandsList[name]['category']
-            if cat == category:
+            if self.commandsList[name]['category'] == category:
                 categoryButtons.append(name)
                 if self.commandCheckBox[name].isChecked():
                     uncheckedCategoryButtons.append(name)
@@ -257,29 +376,10 @@ class UI(QtWidgets.QMainWindow):
         if len(selection) > 0:
             nodes = []
             for node in selection:
-                relatives = cmds.listRelatives(node, allDescendents=True, typ="transform")
-                if relatives:
+                if relatives := cmds.listRelatives(node, allDescendents=True, typ="transform"):
                     nodes.extend(relatives)
                 nodes.append(node)
-        elif self.selectedTopNode_UI.text() == "":
-            nodes = self.filterGetAllNodes()
         else:
-            nodes = self.filterGetTopNode(self.selectedTopNode_UI.text())
-            if not nodes:
-                self.reportOutputUI.clear()
-                self.reportOutputUI.insertPlainText("Object in Root Node doesn't exists\n")
-        return nodes
-
-    def filterGetTopNode(self, topNode):
-        nodes = []
-        if cmds.objExists(topNode):
-            nodes.append(topNode)
-            children = cmds.listRelatives(
-                topNode, allDescendents=True, typ="transform")
-            if children:
-                nodes.extend(children)
-        else:
-            self.selectedTopNode_UI.clear()
             nodes = self.filterGetAllNodes()
         return nodes
 
@@ -316,15 +416,6 @@ class UI(QtWidgets.QMainWindow):
         consolidated = self.consolidatedCheck.isChecked()
 
         html = ""
-
-        if self.metadataCheck.isChecked():
-            metadata = self.getMetadata()
-            html += "----------------- Scene Metadata -----------------<br>"
-            for key in metadata:
-                html += f"{key}: {metadata[key]}<br>"
-            html += "-----------------------------------------------------<br>"
-
-
         for error in sorted(self.commandsList.keys()):
             if error not in self.diagnostics:
                 self.errorNodesButton[error].setEnabled(False)
@@ -362,27 +453,19 @@ class UI(QtWidgets.QMainWindow):
                         html += f"&#9492;&#9472; {node}<br>"
         self.reportOutputUI.insertHtml(html)
 
-    def getMetadata(self):
-        return {
-            "user": getpass.getuser(),
-            "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "mayaVersion": cmds.about(iv=True),
-            "mayaScene": cmds.file(q=True, sn=True) or "Untitled",
-        }
-
     def sanityCheck(self):
         checkedCommands = []
-        nodes = self.filterNodes()
-        if not nodes:
+        if nodes := self.filterNodes():        
+            for name in self.commandsList:
+                if self.commandCheckBox[name].isChecked():
+                        checkedCommands.append(name)
+                diagnostics = self.commandToRun(checkedCommands, nodes)
+                self.diagnostics = diagnostics
+                self.createReport()
+        else:
             self.reportOutputUI.clear()
             self.reportOutputUI.insertHtml("No nodes to check.")
-            return
-        for name in self.commandsList:
-            if self.commandCheckBox[name].isChecked():
-                checkedCommands.append(name)
-        diagnostics = self.commandToRun(checkedCommands, nodes)
-        self.diagnostics = diagnostics
-        self.createReport()
+
 
     def selectErrorNodes(self, nodes):
         cmds.select(nodes)
@@ -390,7 +473,6 @@ class UI(QtWidgets.QMainWindow):
     def saveSettings(self):
         settings = {}
         settings['consolidated'] = self.consolidatedCheck.isChecked()
-        settings['metadata'] = self.metadataCheck.isChecked()
         settings['commands'] = {}
         for name in self.commandsList:
             settings['commands'][name] = self.commandCheckBox[name].isChecked()
@@ -401,10 +483,14 @@ class UI(QtWidgets.QMainWindow):
         if settings:
             settings = json.loads(settings)
             self.consolidatedCheck.setChecked(settings['consolidated'])
-            self.metadataCheck.setChecked(settings['metadata'])
             for name in settings['commands']:
                 self.commandCheckBox[name].setChecked(settings['commands'][name])
-                
+    
+    def selectFailed(self):
+        for name in self.commandsList.keys():
+            failed = name in self.diagnostics and len(self.diagnostics[name]) > 0
+            self.commandCheckBox[name].setChecked(failed)
+    
 if __name__ == '__main__':
     try:
         win.close()

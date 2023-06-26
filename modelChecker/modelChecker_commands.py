@@ -129,19 +129,14 @@ def zeroLengthEdges(_, SLMesh):
         selIt.next()
     return zeroLengthEdges
 
-
 def selfPenetratingUVs(transformNodes, _):
     selfPenetratingUVs = []
     for node in transformNodes:
-        shape = cmds.listRelatives(node, shapes=True, fullPath=True)
-        convertToFaces = cmds.ls(
-            cmds.polyListComponentConversion(shape, tf=True), fl=True)
-        overlapping = (cmds.polyUVOverlap(convertToFaces, oc=True))
-        if overlapping:
-            for node in overlapping:
-                selfPenetratingUVs.append(node)
+        shape = cmds.listRelatives(node, shapes=True, fullPath=True, type="mesh")
+        faces = cmds.polyListComponentConversion(shape, tf=True)
+        if overlapping := cmds.polyUVOverlap(faces, oc=True):
+            selfPenetratingUVs.extend(overlapping)
     return selfPenetratingUVs
-
 
 def noneManifoldEdges(_, SLMesh):
     noneManifoldEdges = []
@@ -223,13 +218,15 @@ def uvRange(_, SLMesh):
         return []
     uvRange = []
     selIt = om.MItSelectionList(SLMesh)
-    mesh = om.MFnMesh(selIt.getDagPath())
-    objectName = selIt.getDagPath().getPath()
-    Us, Vs = mesh.getUVs()
-    for i in range(len(Us)):
-        if Us[i] < 0 or Us[i] > 10 or Vs[i] < 0:
-            componentName = f"{str(objectName)}.map[{str(i)}]"
-            uvRange.append(componentName)
+    while not selIt.isDone():
+        mesh = om.MFnMesh(selIt.getDagPath())
+        objectName = selIt.getDagPath().getPath()
+        Us, Vs = mesh.getUVs()
+        for i in range(len(Us)):
+            if Us[i] < 0 or Us[i] > 10 or Vs[i] < 0:
+                componentName = f"{str(objectName)}.map[{str(i)}]"
+                uvRange.append(componentName)
+        selIt.next()
     return uvRange
 
 def onBorder(_, SLMesh):
@@ -237,13 +234,15 @@ def onBorder(_, SLMesh):
         return []
     onBorder = []
     selIt = om.MItSelectionList(SLMesh)
-    mesh = om.MFnMesh(selIt.getDagPath())
-    objectName = selIt.getDagPath().getPath()
-    Us, Vs = mesh.getUVs()
-    for i in range(len(Us)):
-        if abs(int(Us[i]) - Us[i]) < 0.00001 or abs(int(Vs[i]) - Vs[i]) < 0.00001:
-            componentName = f"{str(objectName)}.map[{str(i)}]"
-            onBorder.append(componentName)
+    while not selIt.isDone():
+        mesh = om.MFnMesh(selIt.getDagPath())
+        objectName = selIt.getDagPath().getPath()
+        Us, Vs = mesh.getUVs()
+        for i in range(len(Us)):
+            if abs(int(Us[i]) - Us[i]) < 0.00001 or abs(int(Vs[i]) - Vs[i]) < 0.00001:
+                componentName = f"{str(objectName)}.map[{str(i)}]"
+                onBorder.append(componentName)
+        selIt.next()
     return onBorder
 
 def crossBorder(_, SLMesh):
@@ -324,7 +323,7 @@ def uncenteredPivots(nodes, _):
 def emptyGroups(nodes, _):
     emptyGroups = []
     for node in nodes:
-        if not children := cmds.listRelatives(node, ad=True)
+        if not cmds.listRelatives(node, ad=True):
             emptyGroups.append(node)
     return emptyGroups
 
@@ -332,7 +331,7 @@ def emptyGroups(nodes, _):
 def parentGeometry(transformNodes, _):
     parentGeometry = []
     for node in transformNodes:
-        if parents := cmds.listRelatives(node, p=True, fullPath=True)
+        if parents := cmds.listRelatives(node, p=True, fullPath=True):
             for parent in parents:
                 children = cmds.listRelatives(parent, fullPath=True)
                 for child in children:
