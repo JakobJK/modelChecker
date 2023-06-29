@@ -47,6 +47,7 @@ class UI(QtWidgets.QMainWindow):
         self.setWindowTitle(f"Model Checker {self.version}")
         self.diagnostics = {}
         self.currentContext = "Global"
+        self.lastSelectedNodes = []
         self.contexts = {
             "Selection": {
                 "name": "Selection",
@@ -79,7 +80,7 @@ class UI(QtWidgets.QMainWindow):
 
         self.loadSettings()
         
-        self.consolidatedCheck.stateChanged.connect(self.createReport)
+        self.consolidatedCheck.stateChanged.connect(self.changeConsolidated)
 
     def contextPopupMenu(self, position):
         contextMenu = QtWidgets.QMenu(self)
@@ -148,8 +149,8 @@ class UI(QtWidgets.QMainWindow):
 
     def addNodeAsContext(self, node):
         uuid = cmds.ls(node, uuid=True)[0]
-        allDescendants = cmds.listRelatives(node, allDescendents=True)
-        nodesCount = len(allDescendants) + 1
+        allDescendants = cmds.listRelatives(node, allDescendents=True, type="transform")
+        nodesCount = (0 if not allDescendants else len(allDescendants)) + 1
         uuidItem = QtWidgets.QTableWidgetItem(uuid)
 
         self.contexts[uuid] = {
@@ -237,12 +238,11 @@ class UI(QtWidgets.QMainWindow):
         self.contextTable.customContextMenuRequested.connect(self.contextPopupMenu)
 
         for idx, context in enumerate(defaultContexts):
-            self.contextRowItems[context] = QtWidgets.QTableWidgetItem(context)
+            contextItem = QtWidgets.QTableWidgetItem(context)
             uuidItem = QtWidgets.QTableWidgetItem(context)
             self.contexts[context]['tableItem'] = uuidItem 
             nodesItem = QtWidgets.QTableWidgetItem("0")
             testsItem = QtWidgets.QTableWidgetItem("0")
-            contextItem = self.contextRowItems[context]
             contextItem.setFlags(contextItem.flags() & ~QtCore.Qt.ItemIsEditable)
 
             # if the contect is selection, let's make the contextItem uncheckable
@@ -255,7 +255,7 @@ class UI(QtWidgets.QMainWindow):
                 self.contexts[context]['nodesCount'] = 0
             else:
                 contextItem.setCheckState(QtCore.Qt.Checked)
-                self.contexts[context]['nodesCount'] = len(cmds.ls(type="transform")) - 4
+                self.contexts[context]['nodesCount'] = len(cmds.ls(type="transform")) -4 
             self.contextTable.insertRow(idx)
             self.contextTable.setItem(idx, 0, uuidItem)
             self.contextTable.setItem(idx, 1, contextItem)
@@ -267,7 +267,8 @@ class UI(QtWidgets.QMainWindow):
         self.reportOutputUI.setReadOnly(True)
         self.reportOutputUI.setMinimumWidth(600)
 
-        self.checkRunButton = QtWidgets.QPushButton("Run All Checked")
+        self.runCurrentButton = QtWidgets.QPushButton("Run Current")
+        self.runAllCheckedButton = QtWidgets.QPushButton("Run All Checked")
         self.consolidatedCheck = QtWidgets.QCheckBox()
 
         clearButton = QtWidgets.QPushButton("Clear")
@@ -280,7 +281,7 @@ class UI(QtWidgets.QMainWindow):
         runLayout = QtWidgets.QHBoxLayout()
         runLayout.addWidget(QtWidgets.QLabel("Report: "))
         runLayout.addWidget(clearButton)
-        runLayout.addWidget(self.checkRunButton)
+        runLayout.addWidget(self.runAllCheckedButton)
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)    
         splitter.addWidget(self.contextTable)
         splitter.addWidget(self.reportOutputUI)
@@ -289,8 +290,8 @@ class UI(QtWidgets.QMainWindow):
         report.addWidget(splitter)
         report.addLayout(runLayout)
 
-        self.checkRunButton.clicked.connect(self.sanityCheck)
-        clearButton.clicked.connect(lambda x: print(self.contexts))
+        self.runAllCheckedButton.clicked.connect(self.sanityCheck)
+        clearButton.clicked.connect(self.clearReport)
         
         return report
 
@@ -413,9 +414,12 @@ class UI(QtWidgets.QMainWindow):
             self.commandCheckBox[name].setChecked(
                 not self.commandCheckBox[name].isChecked())
             
-    def clearReport(self, context):
-        self.contexts["diagnostics"] = {}
-        self.contexts["diagnostics"]["nodes"] = 0
+    def clearReport(self):
+        context = self.contexts[self.currentContext]
+        context["diagnostics"] = {}
+        context["diagnostics"]["nodes"] = 0
+        context["diagnostics"]["tests"] = 0
+        self.clearRowFromItem(context['tableItem'])
         for command in self.commandsList.keys():
             self.errorNodesButton[command].setEnabled(False)
             self.commandLabel[command].setStyleSheet('background-color: none;')
@@ -452,9 +456,16 @@ class UI(QtWidgets.QMainWindow):
         return allUsuableNodes
     
     def oneOfs(self, command):
-        diagnostics = self.commandToRun([command], self.getFullContext(self.currentContext))
-        self.diagnostics[self.currentContext]['diagnostics'][command] = diagnostics[command]
-        self.createReport(self.diagnostics[self.currentContext][command]['diagnostics'])
+        if self.currentContext == "Global":
+            nodes = self.filterGetAllNodes()
+        elif self.currentContext == "Selected":
+            nodes = self.lastSelectedNodes
+        else:
+            nodes = self.getFullContextFromUUID(self.currentContext)
+        diagnostics = self.contexts[self.currentContext]['diagnostics']
+        new_diagnostics = self.commandToRun([command], nodes)
+        diagnostics[command] = new_diagnostics[command]
+        self.createReport(diagnostics)
 
     def commandToRun(self, commands, nodes):
         diagnostics = {}
@@ -475,6 +486,12 @@ class UI(QtWidgets.QMainWindow):
         lastFailed = None
         consolidated = self.consolidatedCheck.isChecked()
         html = ""
+
+        if len(diagnostics) == 0:
+            html += f"No tests run in this context ({self.currentContext})."
+            self.reportOutputUI.setHtml(html)
+            return
+
         for error in sorted(self.commandsList.keys()):
             if error not in diagnostics:
                 self.errorNodesButton[error].setEnabled(False)
@@ -506,11 +523,16 @@ class UI(QtWidgets.QMainWindow):
                         store[name] = store.get(name, 0) + 1
                     for node in store:
                         word = "issues" if store[node] > 1 else "issue"
-                        html += f"&#9492;&#9472; {node} - <font color=#9c4f4f>{store[node]} {word}</font><br>"
+                        html += f"&#9492;&#9472; {name} - <font color=#9c4f4f>{store[node]} {word}</font><br>"
                 else:
                     for node in diagnostics[error]:
-                        html += f"&#9492;&#9472; {node}<br>"
+                        html += f"&#9492;&#9472; {node.split('|')[-1]}<br>"
         self.reportOutputUI.insertHtml(html)
+
+    def changeConsolidated(self):
+        context = self.contexts[self.currentContext]
+        if context['diagnostics']:
+            self.createReport(context['diagnostics'])
 
     def selectHierachy(self, nodes):
         hierachy = set()
@@ -522,7 +544,15 @@ class UI(QtWidgets.QMainWindow):
 
     def sanityCheck(self):
         contextsUuids = []
-        checkedCommands = []
+        checkedCommands = []        
+        
+        for name in self.commandsList:
+            if self.commandCheckBox[name].isChecked():
+                checkedCommands.append(name)
+        
+        if not checkedCommands:
+            cmds.warning("No commands checked")
+            return
 
         if cmds.ls(selection=True, typ="transform"):
             contextsUuids.append("Selection")
@@ -531,32 +561,29 @@ class UI(QtWidgets.QMainWindow):
                 contextItem = self.contextTable.item(row, 1)
                 if contextItem.checkState() == QtCore.Qt.Checked:
                     uuidItem = self.contextTable.item(row, 0)
-                    nodesItem = self.contextTable.item(row, 2)
-                    testItem = self.contextTable.item(row, 3)
-                    nodesItem.setText(" - ")
-                    testItem.setText("Running")
-
                     uuid = uuidItem.text()
                     contextsUuids.append(uuid)
         
-        for name in self.commandsList:
-            if self.commandCheckBox[name].isChecked():
-                checkedCommands.append(name)
-        
+        for context in contextsUuids:
+            row = self.contexts[context]['tableItem'].row()
+            self.contextTable.item(row, 3).setText("Queued...")
+
         for context in contextsUuids:
             if context == "Global":
                 nodes = self.filterGetAllNodes()
             elif context == "Selection":
                 nodes = self.selectHierachy(cmds.ls(selection=True, typ="transform", long=True))
+                self.lastSelectedNodes = nodes
             else:
                 nodes = self.getFullContextFromUUID(context)
             
+            row = self.contexts[context]['tableItem'].row()
+            self.contextTable.item(row, 3).setText("Running...")
             diagnostics = self.commandToRun(checkedCommands, nodes)
             self.contexts[context]['nodeCount'] = len(nodes)
             self.contexts[context]['diagnostics'] = diagnostics
             self.currentContext = context
             self.setRowFromItem(self.contexts[context]['tableItem'])
-
 
         self.setRowFromUUID(self.currentContext)
 
@@ -568,7 +595,7 @@ class UI(QtWidgets.QMainWindow):
         count = 0
         for error in diagnostics:
             count += 1 if len(diagnostics[error]) > 0 else 0
-        return (count, len(diagnostics))
+        return (len(diagnostics) - count, len(diagnostics))
 
 
     def saveSettings(self):
@@ -588,8 +615,9 @@ class UI(QtWidgets.QMainWindow):
                 self.commandCheckBox[name].setChecked(settings['commands'][name])
     
     def selectFailed(self):
+        diagnostics  = self.contexts[self.currentContext]['diagnostics']
         for name in self.commandsList.keys():
-            failed = name in self.diagnostics and len(self.diagnostics[name]) > 0
+            failed = name in diagnostics and len(diagnostics[name]) > 0
             self.commandCheckBox[name].setChecked(failed)
     
     def setRowFromItem(self, item):
@@ -605,7 +633,13 @@ class UI(QtWidgets.QMainWindow):
         nodesItem.setText(str(self.contexts[self.currentContext]['nodeCount']))
         testItem.setText(f"{passed}/{total}")
 
-
+    def clearRowFromItem(self, item):
+        row = item.row()
+        for column in range(self.contextTable.columnCount()):
+            self.contextTable.item(row, column).setBackgroundColor(QtGui.QColor(0,0,0,0))
+        
+        testItem = self.contextTable.item(row, 3)
+        testItem.setText("0")
     
 if __name__ == '__main__':
     try:
