@@ -9,11 +9,19 @@ def trailingNumbers(nodes, _):
     return trailingNumbers
 
 def duplicatedNames(nodes, _):
-    duplicatedNames = []
+    duplicatedNames = {}
+    store = set()
     for node in nodes:
-        if '|' in node:
-            duplicatedNames.append(node)
-    return duplicatedNames
+        shortName = node.split('|')[-1]
+        if shortName in duplicatedNames:
+            duplicatedNames[shortName].append(node)
+            store.add(shortName)
+        else:
+            duplicatedNames[shortName] = [node]
+    output = []
+    for name in store:
+        output.extend(duplicatedNames[name])
+    return output
 
 
 def namespaces(nodes, _):
@@ -40,7 +48,7 @@ def triangles(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not faceIt.isDone():
             numOfEdges = faceIt.getEdges()
             if len(numOfEdges) == 3:
@@ -59,7 +67,7 @@ def ngons(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not faceIt.isDone():
             numOfEdges = faceIt.getEdges()
             if len(numOfEdges) > 4:
@@ -74,7 +82,7 @@ def hardEdges(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not edgeIt.isDone():
             if edgeIt.isSmooth is False and edgeIt.onBoundary() is False:
                 componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
@@ -88,7 +96,7 @@ def lamina(_, SLMesh):
     lamina = []
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not faceIt.isDone():
             laminaFaces = faceIt.isLamina()
             if laminaFaces is True:
@@ -104,7 +112,7 @@ def zeroAreaFaces(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not faceIt.isDone():
             faceArea = faceIt.getArea()
             if faceArea <= 0.00000001:
@@ -120,7 +128,7 @@ def zeroLengthEdges(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not edgeIt.isDone():
             if edgeIt.length() <= 0.00000001:
                 componentName = f"{str(objectName)}.f[{str(edgeIt.index())}]"
@@ -143,7 +151,7 @@ def noneManifoldEdges(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not edgeIt.isDone():
             if edgeIt.numConnectedFaces() > 2:
                 componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
@@ -158,7 +166,7 @@ def openEdges(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         edgeIt = om.MItMeshEdge(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not edgeIt.isDone():
             if edgeIt.numConnectedFaces() < 2:
                 componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
@@ -173,7 +181,7 @@ def poles(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         vertexIt = om.MItMeshVertex(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not vertexIt.isDone():
             if vertexIt.numConnectedEdges() > 5:
                 componentName = f"{str(objectName)}.vtx[{str(vertexIt.index())}]"
@@ -188,7 +196,7 @@ def starlike(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         polyIt = om.MItMeshPolygon(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not polyIt.isDone():
             if polyIt.isStarlike() is False:
                 componentName = f"{str(objectName)}.f[{str(polyIt.index())}]"
@@ -204,7 +212,7 @@ def missingUVs(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not faceIt.isDone():
             if faceIt.hasUVs() is False:
                 componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
@@ -220,7 +228,7 @@ def uvRange(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         mesh = om.MFnMesh(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         Us, Vs = mesh.getUVs()
         for i in range(len(Us)):
             if Us[i] < 0 or Us[i] > 10 or Vs[i] < 0:
@@ -236,7 +244,7 @@ def onBorder(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         mesh = om.MFnMesh(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         Us, Vs = mesh.getUVs()
         for i in range(len(Us)):
             if abs(int(Us[i]) - Us[i]) < 0.00001 or abs(int(Vs[i]) - Vs[i]) < 0.00001:
@@ -252,7 +260,7 @@ def crossBorder(_, SLMesh):
     selIt = om.MItSelectionList(SLMesh)
     while not selIt.isDone():
         faceIt = om.MItMeshPolygon(selIt.getDagPath())
-        objectName = selIt.getDagPath().getPath()
+        objectName = selIt.getDagPath().fullPathName()
         while not faceIt.isDone():
             U, V = set(), set()
             try:
@@ -326,7 +334,6 @@ def emptyGroups(nodes, _):
         if not cmds.listRelatives(node, ad=True):
             emptyGroups.append(node)
     return emptyGroups
-
 
 def parentGeometry(transformNodes, _):
     parentGeometry = []
