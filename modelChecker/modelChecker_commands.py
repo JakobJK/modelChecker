@@ -71,7 +71,7 @@ def ngons(_, SLMesh):
         while not faceIt.isDone():
             numOfEdges = faceIt.getEdges()
             if len(numOfEdges) > 4:
-                componentName = f"{str(objectName)}.f[{str(faceIt.index())}"
+                componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
                 ngons.append(componentName)
             faceIt.next()
         selIt.next()

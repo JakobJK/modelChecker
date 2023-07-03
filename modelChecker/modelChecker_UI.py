@@ -642,9 +642,10 @@ class UI(QtWidgets.QMainWindow):
         if settings:
             settings = json.loads(settings)
             self.consolidatedCheck.setChecked(settings['consolidated'])
-            for name in settings['commands']:
-                self.commandCheckBox[name].setChecked(settings['commands'][name])
-    
+            if 'commands' in settings:
+                for name in settings['commands']:
+                    self.commandCheckBox[name].setChecked(settings['commands'][name])
+                    
     def selectFailed(self):
         diagnostics  = self.contexts[self.currentContextUUID]['diagnostics']
         for name in self.commandsList.keys():
@@ -672,6 +673,7 @@ class UI(QtWidgets.QMainWindow):
         testItem = self.contextTable.item(row, 3)
         testItem.setText("0")
     
+
 if __name__ == '__main__':
     try:
         win.close()
