@@ -401,10 +401,12 @@ class UI(QtWidgets.QMainWindow):
         if settings:
             settings = json.loads(settings)
             self.consolidatedCheck.setChecked(settings['consolidated'])
-            self.metadataCheck.setChecked(settings['metadata'])
-            for name in settings['commands']:
-                self.commandCheckBox[name].setChecked(settings['commands'][name])
-                
+            if 'metadata' in settings:
+                self.metadataCheck.setChecked(settings['metadata'])
+            if 'commands' in settings:
+                for name in settings['commands']:
+                    self.commandCheckBox[name].setChecked(settings['commands'][name])
+                    
 if __name__ == '__main__':
     try:
         win.close()
