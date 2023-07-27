@@ -36,8 +36,7 @@ def shapeNames(nodes, _):
     shapeNames = []
     for node in nodes:
         new = node.split('|')
-        shape = cmds.listRelatives(node, shapes=True)
-        if shape:
+        if shape := cmds.listRelatives(node, shapes=True):
             shapename = new[-1] + "Shape"
             if shape[0] != shapename:
                 shapeNames.append(node)

@@ -9,6 +9,7 @@ import maya.api.OpenMaya as om
 import maya.utils as utils
 import modelChecker.modelChecker_commands as mcc
 import modelChecker.modelChecker_list as mcl
+from modelChecker.__version__ import __version__
 
 def getMainWindow():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -18,7 +19,7 @@ def getMainWindow():
 
 class UI(QtWidgets.QMainWindow):
     qmwInstance = None
-    version = '0.1.4'
+    version = __version__
     commandsList = mcl.mcCommandsList
     categoryLayout = {}
     categoryWidget = {}
