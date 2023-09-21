@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
 
@@ -9,19 +11,16 @@ def trailingNumbers(nodes, _):
     return trailingNumbers
 
 def duplicatedNames(nodes, _):
-    duplicatedNames = {}
-    store = set()
+    nodes_by_short_name = defaultdict(list)
     for node in nodes:
-        shortName = node.split('|')[-1]
-        if shortName in duplicatedNames:
-            duplicatedNames[shortName].append(node)
-            store.add(shortName)
-        else:
-            duplicatedNames[shortName] = [node]
-    output = []
-    for name in store:
-        output.extend(duplicatedNames[name])
-    return output
+        short_name = node.rsplit('|', 1)[-1]
+        nodes_by_short_name[short_name].append(node)
+
+    invalid = []
+    for short_name, short_name_nodes in nodes_by_short_name.items():
+        if len(short_name_nodes) > 1:
+            invalid.extend(short_name_nodes)
+    return invalid
 
 
 def namespaces(nodes, _):
@@ -140,9 +139,8 @@ def zeroLengthEdges(_, SLMesh):
 def selfPenetratingUVs(transformNodes, _):
     selfPenetratingUVs = []
     for node in transformNodes:
-        shape = cmds.listRelatives(node, shapes=True, fullPath=True, type="mesh")
-        faces = cmds.polyListComponentConversion(shape, tf=True)
-        overlapping = cmds.polyUVOverlap(faces, oc=True)
+        shape = cmds.listRelatives(node, shapes=True, fullPath=True, type="mesh", noIntermediate=True)
+        overlapping = cmds.polyUVOverlap("{}.f[*]".format(shape), oc=True)
         if overlapping:
             selfPenetratingUVs.extend(overlapping)
     return selfPenetratingUVs
