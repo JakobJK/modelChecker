@@ -301,13 +301,14 @@ class UI(QtWidgets.QMainWindow):
         runLayout.addWidget(QtWidgets.QLabel("Report: "))
         runLayout.addWidget(clearButton)
         runLayout.addWidget(self.runAllCheckedButton)
-        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)    
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         splitter.addWidget(self.contextTable)
         splitter.addWidget(self.reportOutputUI)
-        splitter.setSizes([200, 800])
+        splitter.setSizes([0, 1])
         report.addLayout(settingsLayout)
         report.addWidget(splitter)
         report.addLayout(runLayout)
+        
 
         self.runAllCheckedButton.clicked.connect(self.sanityCheckChecked)
         clearButton.clicked.connect(self.clearCurrentReport)

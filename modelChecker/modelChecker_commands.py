@@ -139,10 +139,11 @@ def zeroLengthEdges(_, SLMesh):
 def selfPenetratingUVs(transformNodes, _):
     selfPenetratingUVs = []
     for node in transformNodes:
-        shape = cmds.listRelatives(node, shapes=True, fullPath=True, type="mesh", noIntermediate=True)
-        overlapping = cmds.polyUVOverlap("{}.f[*]".format(shape), oc=True)
-        if overlapping:
-            selfPenetratingUVs.extend(overlapping)
+        shapes = cmds.listRelatives(node, shapes=True, fullPath=True, type="mesh", noIntermediate=True)
+        if shapes:
+            overlapping = cmds.polyUVOverlap("{}.f[*]".format(shapes[0]), oc=True)
+            if overlapping:
+                selfPenetratingUVs.extend(overlapping)
     return selfPenetratingUVs
 
 def noneManifoldEdges(_, SLMesh):
