@@ -6,7 +6,6 @@ import json
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 import maya.api.OpenMaya as om
-import maya.utils as utils
 import modelChecker.modelChecker_commands as mcc
 import modelChecker.modelChecker_list as mcl
 from modelChecker.__version__ import __version__
@@ -47,7 +46,7 @@ class UI(QtWidgets.QMainWindow):
         super(UI, self).__init__(parent)
 
         self.setObjectName("ModelCheckerUI")
-        self.setWindowTitle(f"Model Checker {self.version}")
+        self.setWindowTitle("Model Checker {}".format(self.version))
         self.diagnostics = {}
         self.currentContextUUID = "Global"
         self.lastSelectedNodes = []
@@ -121,7 +120,7 @@ class UI(QtWidgets.QMainWindow):
             if rowIdx > 1:
                 contextItem.setCheckState(QtCore.Qt.Checked)
             else:
-                cmds.warning(f"{contextItem.text()} is managed by the modelChecker.")
+                cmds.warning("{} is managed by the modelChecker.".format(contextItem.text()))
     
     def uncheckSelected(self):
         indexes = self.contextTable.selectionModel().selectedRows()
@@ -136,11 +135,12 @@ class UI(QtWidgets.QMainWindow):
         selectedNodes = cmds.ls(selection=True)
         lastContext = None
         for node in selectedNodes:
-            if parent := self.checkForParent(node):
+            parent = self.checkForParent(node)
+            if parent:
                 msgBox = QtWidgets.QMessageBox()    
                 msgBox.setIcon(QtWidgets.QMessageBox.Warning)
                 msgBox.setWindowTitle("Warning")
-                msgBox.setText(f"The node you are trying to add ({node}) is already part of a context ({parent}). Do you still wish to add this node as a context? (Not recommended)")
+                msgBox.setText("The node you are trying to add ({}) is already part of a context ({}). Do you still wish to add this node as a context? (Not recommended)".format(node, parent))
                 msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
                 returnValue = msgBox.exec_()
                 if returnValue == QtWidgets.QMessageBox.Ok:
@@ -212,7 +212,7 @@ class UI(QtWidgets.QMainWindow):
                 else:
                     self.contextTable.item(1, 1).setCheckState(QtCore.Qt.Unchecked)
             except:
-                cmds.warning(f"Failed to remove context: {node}")
+                cmds.warning("Failed to remove context: {}".format(node))
 
         if self.currentContextUUID not in self.contexts:        
             lastContext = list(self.contexts.keys())[-1]
@@ -463,8 +463,10 @@ class UI(QtWidgets.QMainWindow):
 
     def getFullContextFromUUID(self, contextUUID):
         nodes = []
-        if node := cmds.ls(contextUUID, long=True):
-            if relatives := cmds.listRelatives(node[0], allDescendents=True, typ="transform", path=True):
+        node = cmds.ls(contextUUID, long=True)
+        if node:
+            relatives = cmds.listRelatives(node[0], allDescendents=True, typ="transform", path=True)
+            if relatives:
                 nodes.extend(relatives)
                 nodes.append(node[0])
         return nodes
@@ -510,7 +512,7 @@ class UI(QtWidgets.QMainWindow):
         html = ""
 
         if len(diagnostics) == 0:
-            html += f"No tests run in this context ({self.contexts[self.currentContextUUID]['name']})."
+            html += "No tests run in this context ({}).".format(self.contexts[self.currentContextUUID]['name'])
             self.reportOutputUI.setHtml(html)
             return
 
@@ -533,9 +535,9 @@ class UI(QtWidgets.QMainWindow):
                 html += "<br>"
             lastFailed = failed
             if failed:
-                html += f"&#10752; {label}<font color=#9c4f4f> [ FAILED ]</font><br>"
+                html += "&#10752; {}<font color=#9c4f4f> [ FAILED ]</font><br>".format(label)
             else:
-                html += f"{label}<font color=#64a65a> [ SUCCESS ]</font><br>" 
+                html += "{}<font color=#64a65a> [ SUCCESS ]</font><br>".format(label)
             
             if failed:
                 if consolidated and "." in diagnostics[error][0]:
@@ -545,10 +547,10 @@ class UI(QtWidgets.QMainWindow):
                         store[name] = store.get(name, 0) + 1
                     for node in store:
                         word = "issues" if store[node] > 1 else "issue"
-                        html += f"&#9492;&#9472; {name} - <font color=#9c4f4f>{store[node]} {word}</font><br>"
+                        html += "&#9492;&#9472; {} - <font color=#9c4f4f>{} {}</font><br>".format(name, store[node], word)
                 else:
                     for node in diagnostics[error]:
-                        html += f"&#9492;&#9472; {node}<br>"
+                        html += "&#9492;&#9472; {}<br>".format(node)
         self.reportOutputUI.insertHtml(html)
 
     def changeConsolidated(self):
@@ -664,7 +666,7 @@ class UI(QtWidgets.QMainWindow):
         testItem = self.contextTable.item(row, 3)
 
         nodesItem.setText(str(self.contexts[self.currentContextUUID]['nodeCount']))
-        testItem.setText(f"{passed}/{total}")
+        testItem.setText("{}/{}".format(passed, total))
 
     def clearRowFromItem(self, item):
         row = item.row()
