@@ -264,7 +264,7 @@ class UI(QtWidgets.QMainWindow):
             nodesItem.setFlags(nodesItem.flags() & ~QtCore.Qt.ItemIsEditable)
             testsItem.setFlags(testsItem.flags() & ~QtCore.Qt.ItemIsEditable)
 
-            # if the contect is selection, let's make the contextItem uncheckable
+            # if the context is selection, let's make the contextItem uncheckable
             if context == "Selection" or context == "Global":
                 contextItem.setFlags(contextItem.flags() & ~QtCore.Qt.ItemIsUserCheckable)
             else:
@@ -323,7 +323,7 @@ class UI(QtWidgets.QMainWindow):
             self.categoryLayout[obj] = QtWidgets.QVBoxLayout()
             self.categoryHeader[obj] = QtWidgets.QHBoxLayout()
             self.categoryButton[obj] = QtWidgets.QPushButton(obj)
-            self.categoryCollapse[obj] = QtWidgets.QPushButton('\u2193')
+            self.categoryCollapse[obj] = QtWidgets.QPushButton(u'\u2193')
             self.categoryCollapse[obj].clicked.connect(
                 partial(self.toggleUI, obj))
             self.categoryCollapse[obj].setMaximumWidth(30)
