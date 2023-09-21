@@ -36,7 +36,8 @@ def shapeNames(nodes, _):
     shapeNames = []
     for node in nodes:
         new = node.split('|')
-        if shape := cmds.listRelatives(node, shapes=True):
+        shape = cmds.listRelatives(node, shapes=True)
+        if shape:
             shapename = new[-1] + "Shape"
             if shape[0] != shapename:
                 shapeNames.append(node)
@@ -52,7 +53,7 @@ def triangles(_, SLMesh):
             numOfEdges = faceIt.getEdges()
             if len(numOfEdges) == 3:
                 faceIndex = faceIt.index()
-                componentName = f"{str(objectName)}.f[{str(faceIndex)}]"
+                componentName = "{}.f[{}]".format(str(objectName), str(faceIndex))
                 triangles.append(componentName)
             faceIt.next()
         selIt.next()
@@ -70,7 +71,7 @@ def ngons(_, SLMesh):
         while not faceIt.isDone():
             numOfEdges = faceIt.getEdges()
             if len(numOfEdges) > 4:
-                componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
+                componentName = "{}.f[{}]".format(str(objectName), str(faceIt.index()))
                 ngons.append(componentName)
             faceIt.next()
         selIt.next()
@@ -84,7 +85,7 @@ def hardEdges(_, SLMesh):
         objectName = selIt.getDagPath().fullPathName()
         while not edgeIt.isDone():
             if edgeIt.isSmooth is False and edgeIt.onBoundary() is False:
-                componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
+                componentName = "{}.e[{}]".format(str(objectName), str(edgeIt.index()))
                 hardEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -99,7 +100,7 @@ def lamina(_, SLMesh):
         while not faceIt.isDone():
             laminaFaces = faceIt.isLamina()
             if laminaFaces is True:
-                componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
+                componentName = "{}.f[{}]".format(str(objectName), str(faceIt.index()))
                 lamina.append(componentName)
             faceIt.next()
         selIt.next()
@@ -115,7 +116,7 @@ def zeroAreaFaces(_, SLMesh):
         while not faceIt.isDone():
             faceArea = faceIt.getArea()
             if faceArea <= 0.00000001:
-                componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
+                componentName = "{}.f[{}]".format(str(objectName), str(faceIt.index()))
                 zeroAreaFaces.append(componentName)
             faceIt.next()
         selIt.next()
@@ -130,7 +131,7 @@ def zeroLengthEdges(_, SLMesh):
         objectName = selIt.getDagPath().fullPathName()
         while not edgeIt.isDone():
             if edgeIt.length() <= 0.00000001:
-                componentName = f"{str(objectName)}.f[{str(edgeIt.index())}]"
+                componentName = "{}.f[{}]".format(str(objectName), str(edgeIt.index()))
                 zeroLengthEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -141,7 +142,8 @@ def selfPenetratingUVs(transformNodes, _):
     for node in transformNodes:
         shape = cmds.listRelatives(node, shapes=True, fullPath=True, type="mesh")
         faces = cmds.polyListComponentConversion(shape, tf=True)
-        if overlapping := cmds.polyUVOverlap(faces, oc=True):
+        overlapping = cmds.polyUVOverlap(faces, oc=True)
+        if overlapping:
             selfPenetratingUVs.extend(overlapping)
     return selfPenetratingUVs
 
@@ -153,7 +155,7 @@ def noneManifoldEdges(_, SLMesh):
         objectName = selIt.getDagPath().fullPathName()
         while not edgeIt.isDone():
             if edgeIt.numConnectedFaces() > 2:
-                componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
+                componentName = "{}.e[{}]".format(str(objectName), str(edgeIt.index()))
                 noneManifoldEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -168,7 +170,7 @@ def openEdges(_, SLMesh):
         objectName = selIt.getDagPath().fullPathName()
         while not edgeIt.isDone():
             if edgeIt.numConnectedFaces() < 2:
-                componentName = f"{str(objectName)}.e[{str(edgeIt.index())}]"
+                componentName = "{}.e[{}]".format(str(objectName), str(edgeIt.index()))
                 openEdges.append(componentName)
             edgeIt.next()
         selIt.next()
@@ -183,7 +185,7 @@ def poles(_, SLMesh):
         objectName = selIt.getDagPath().fullPathName()
         while not vertexIt.isDone():
             if vertexIt.numConnectedEdges() > 5:
-                componentName = f"{str(objectName)}.vtx[{str(vertexIt.index())}]"
+                componentName = "{}.vtx[{}]".format(str(objectName), str(vertexIt.index()))
                 poles.append(componentName)
             vertexIt.next()
         selIt.next()
@@ -198,7 +200,7 @@ def starlike(_, SLMesh):
         objectName = selIt.getDagPath().fullPathName()
         while not polyIt.isDone():
             if polyIt.isStarlike() is False:
-                componentName = f"{str(objectName)}.f[{str(polyIt.index())}]"
+                componentName = "{}.f[{}]".format(str(objectName), str(polyIt.index()))
                 starlike.append(componentName)
             polyIt.next()
         selIt.next()
@@ -214,7 +216,7 @@ def missingUVs(_, SLMesh):
         objectName = selIt.getDagPath().fullPathName()
         while not faceIt.isDone():
             if faceIt.hasUVs() is False:
-                componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
+                componentName = "{}.f[{}]".format(str(objectName), str(faceIt.index()))
                 missingUVs.append(componentName)
             faceIt.next()
         selIt.next()
@@ -231,7 +233,7 @@ def uvRange(_, SLMesh):
         Us, Vs = mesh.getUVs()
         for i in range(len(Us)):
             if Us[i] < 0 or Us[i] > 10 or Vs[i] < 0:
-                componentName = f"{str(objectName)}.map[{str(i)}]"
+                componentName = "{}.map[{}]".format(str(objectName), str(i))
                 uvRange.append(componentName)
         selIt.next()
     return uvRange
@@ -247,7 +249,7 @@ def onBorder(_, SLMesh):
         Us, Vs = mesh.getUVs()
         for i in range(len(Us)):
             if abs(int(Us[i]) - Us[i]) < 0.00001 or abs(int(Vs[i]) - Vs[i]) < 0.00001:
-                componentName = f"{str(objectName)}.map[{str(i)}]"
+                componentName = "{}.map[{}]".format(str(objectName), str(i))
                 onBorder.append(componentName)
         selIt.next()
     return onBorder
@@ -271,7 +273,7 @@ def crossBorder(_, SLMesh):
                     U.add(uAdd)
                     V.add(vAdd)
                 if len(U) > 1 or len(V) > 1:
-                    componentName = f"{str(objectName)}.f[{str(faceIt.index())}]"
+                    componentName = "{}.f[{}]".format(str(objectName), str(faceIt.index()))
                     crossBorder.append(componentName)
                 faceIt.next()
             except:
@@ -337,7 +339,8 @@ def emptyGroups(nodes, _):
 def parentGeometry(transformNodes, _):
     parentGeometry = []
     for node in transformNodes:
-        if parents := cmds.listRelatives(node, p=True, fullPath=True):
+        parents = cmds.listRelatives(node, p=True, fullPath=True)
+        if parents:
             for parent in parents:
                 children = cmds.listRelatives(parent, fullPath=True)
                 for child in children:
