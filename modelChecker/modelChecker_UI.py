@@ -579,7 +579,6 @@ class UI(QtWidgets.QMainWindow):
             cmds.warning("No commands checked")
             return
     
-    
         for contextUUID in contextsUuids:
             if contextUUID == "Global":
                 nodes = self.filterGetAllNodes()
