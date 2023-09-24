@@ -203,7 +203,7 @@ class UI(QtWidgets.QMainWindow):
         btn = QtWidgets.QPushButton("Add Contexts")
         btn1 = QtWidgets.QPushButton("Remove Contexts")
         btn2 = QtWidgets.QPushButton("Run Checks on Selected Contexts")
-        btn3 = QtWidgets.QPushButton("Run Checks on All Contexts")
+        btn3 = QtWidgets.QPushButton("Run Checks on Added Contexts")
         btn.clicked.connect(self.addSelectedNodesAsNewContexts)
         btn1.clicked.connect(self.removeSelectedContexts)
         btn2.clicked.connect(self.sanityCheckSelected)
