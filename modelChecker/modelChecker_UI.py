@@ -52,12 +52,12 @@ class UI(QtWidgets.QMainWindow):
         self.lastSelectedNodes = []
         self.contexts = {
             "Selection": {
-                "name": "Selection",
+                "name": "(Default) Selection",
                 "diagnostics": {},
                 "nodes": 0,
             },
             "Global": {
-                "name": "Global",
+                "name": "(Default) Global",
                 "diagnostics": {},
                 "nodes": 0,
             },
@@ -77,40 +77,9 @@ class UI(QtWidgets.QMainWindow):
         left.setLayout(checks)
         right.setLayout(report)
         mainLayout.addWidget(splitter)
-
         self.resize(1000, 900)
-
-        self.loadSettings()
-        
+        self.loadSettings()        
         self.consolidatedCheck.stateChanged.connect(self.changeConsolidated)
-
-    def contextPopupMenu(self, position):
-        contextMenu = QtWidgets.QMenu(self)
-
-        checkSelectedContexts = QtWidgets.QAction("Check Selected Contexts", contextMenu)
-        uncheckSelectedContexts = QtWidgets.QAction("Uncheck Selected Contexts", contextMenu)
-        runChecksOnSelectedContexts = QtWidgets.QAction("Run Checks on Selected Contexts", contextMenu)
-        addSelectedNodesAsNewContexts = QtWidgets.QAction("Add Selected Nodes as New Contexts", contextMenu)
-        removeSelectedContexts = QtWidgets.QAction("Remove Selected Contexts", contextMenu)
-
-        if not cmds.ls(selection=True):
-            addSelectedNodesAsNewContexts.setEnabled(False)
-
-        checkSelectedContexts.triggered.connect(self.checkSelected)
-        uncheckSelectedContexts.triggered.connect(self.uncheckSelected)
-        runChecksOnSelectedContexts.triggered.connect(self.sanityCheckSelected)
-        addSelectedNodesAsNewContexts.triggered.connect(self.addSelectedNodesAsNewContexts)
-        removeSelectedContexts.triggered.connect(self.removeSelectedContexts)
-
-        contextMenu.addAction(checkSelectedContexts)
-        contextMenu.addAction(uncheckSelectedContexts)
-        contextMenu.addSeparator()
-        contextMenu.addAction(runChecksOnSelectedContexts)
-        contextMenu.addSeparator()
-        contextMenu.addAction(addSelectedNodesAsNewContexts)
-        contextMenu.addAction(removeSelectedContexts)
-        contextMenu.exec_(self.contextTable.viewport().mapToGlobal(position))
-    
 
     def checkSelected(self):
         indexes = self.contextTable.selectionModel().selectedRows()
@@ -238,7 +207,22 @@ class UI(QtWidgets.QMainWindow):
 
     def buildContextUI(self):
         report = QtWidgets.QVBoxLayout()
+        contextWidget = QtWidgets.QWidget()
+        contextWidgetLayout = QtWidgets.QVBoxLayout()
+        contextWidget.setLayout(contextWidgetLayout)
         self.contextTable = QtWidgets.QTableWidget()
+        contextWidgetLayout.addWidget(self.contextTable)
+        contextButtonLayout = QtWidgets.QHBoxLayout()
+
+        btn = QtWidgets.QPushButton("Add Contexts")
+        btn1 = QtWidgets.QPushButton("Remove Contexts")
+        btn2 = QtWidgets.QPushButton("Run Checks on Selected Contexts")
+        btn3 = QtWidgets.QPushButton("Run Checks on All Contexts")
+        contextWidgetLayout.addLayout(contextButtonLayout)
+        contextButtonLayout.addWidget(btn)
+        contextButtonLayout.addWidget(btn1)
+        contextButtonLayout.addWidget(btn2)
+        contextButtonLayout.addWidget(btn3)
 
         self.contextTable.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.contextTable.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -251,11 +235,11 @@ class UI(QtWidgets.QMainWindow):
         self.contextTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.contextTable.cellClicked.connect(self.setCurrentContext)
         self.contextTable.itemSelectionChanged.connect(self.itemSelectionChanged)
-        self.contextTable.customContextMenuRequested.connect(self.contextPopupMenu)
+        # self.contextTable.customContextMenuRequested.connect(self.contextPopupMenu)
 
         for idx, context in enumerate(defaultContexts):
-            contextItem = QtWidgets.QTableWidgetItem(context)
             uuidItem = QtWidgets.QTableWidgetItem(context)
+            contextItem = QtWidgets.QTableWidgetItem("(Default) {}".format(context))
             self.contexts[context]['tableItem'] = uuidItem 
             nodesItem = QtWidgets.QTableWidgetItem("0")
             testsItem = QtWidgets.QTableWidgetItem("0")
@@ -265,15 +249,9 @@ class UI(QtWidgets.QMainWindow):
             testsItem.setFlags(testsItem.flags() & ~QtCore.Qt.ItemIsEditable)
 
             # if the context is selection, let's make the contextItem uncheckable
-            if context == "Selection" or context == "Global":
-                contextItem.setFlags(contextItem.flags() & ~QtCore.Qt.ItemIsUserCheckable)
-            else:
-                contextItem.setFlags(contextItem.flags() | QtCore.Qt.ItemIsUserCheckable)
             if context == "Selection":
-                contextItem.setCheckState(QtCore.Qt.Unchecked)
                 self.contexts[context]['nodesCount'] = 0
             else:
-                contextItem.setCheckState(QtCore.Qt.Checked)
                 self.contexts[context]['nodesCount'] = len(cmds.ls(type="transform")) -4 
             self.contextTable.insertRow(idx)
             self.contextTable.setItem(idx, 0, uuidItem)
@@ -287,7 +265,7 @@ class UI(QtWidgets.QMainWindow):
         self.reportOutputUI.setMinimumWidth(600)
 
         self.runCurrentButton = QtWidgets.QPushButton("Run Current")
-        self.runAllCheckedButton = QtWidgets.QPushButton("Run All Checked")
+        self.runAllCheckedButton = QtWidgets.QPushButton("Run Checks on Selected / All")
         self.consolidatedCheck = QtWidgets.QCheckBox()
 
         clearButton = QtWidgets.QPushButton("Clear")
@@ -295,6 +273,7 @@ class UI(QtWidgets.QMainWindow):
         
         settingsLayout = QtWidgets.QHBoxLayout()
         settingsLayout.addWidget(QtWidgets.QLabel("Consolidated display: "))
+        settingsLayout.addStretch()
         settingsLayout.addWidget(self.consolidatedCheck)
         
         runLayout = QtWidgets.QHBoxLayout()
@@ -302,7 +281,7 @@ class UI(QtWidgets.QMainWindow):
         runLayout.addWidget(clearButton)
         runLayout.addWidget(self.runAllCheckedButton)
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
-        splitter.addWidget(self.contextTable)
+        splitter.addWidget(contextWidget)
         splitter.addWidget(self.reportOutputUI)
         splitter.setSizes([0, 1])
         report.addLayout(settingsLayout)
@@ -513,7 +492,7 @@ class UI(QtWidgets.QMainWindow):
         html = ""
 
         if len(diagnostics) == 0:
-            html += "No tests run in this context ({}).".format(self.contexts[self.currentContextUUID]['name'])
+            html += "{} - No tests run in this context.".format(self.contexts[self.currentContextUUID]['name'])
             self.reportOutputUI.setHtml(html)
             return
 
@@ -574,12 +553,7 @@ class UI(QtWidgets.QMainWindow):
         if cmds.ls(selection=True, typ="transform"):
             contextsUuids.append("Selection")
         else:
-            for row in range(self.contextTable.rowCount()):
-                contextItem = self.contextTable.item(row, 1)
-                if contextItem.checkState() == QtCore.Qt.Checked:
-                    uuidItem = self.contextTable.item(row, 0)
-                    uuid = uuidItem.text()
-                    contextsUuids.append(uuid)
+            contextsUuids.append("Global")
         self.sanityCheck(contextsUuids)
 
     def sanityCheckSelected(self):
