@@ -11,15 +11,15 @@ def trailingNumbers(nodes, _):
     return trailingNumbers
 
 def duplicatedNames(nodes, _):
-    nodes_by_short_name = defaultdict(list)
+    nodesByShortName = defaultdict(list)
     for node in nodes:
-        short_name = node.rsplit('|', 1)[-1]
-        nodes_by_short_name[short_name].append(node)
+        name = node.rsplit('|', 1)[-1]
+        nodesByShortName[name].append(node)
 
     invalid = []
-    for short_name, short_name_nodes in nodes_by_short_name.items():
-        if len(short_name_nodes) > 1:
-            invalid.extend(short_name_nodes)
+    for name, shortNameNodes in nodesByShortName.items():
+        if len(shortNameNodes) > 1:
+            invalid.extend(shortNameNodes)
     return invalid
 
 
