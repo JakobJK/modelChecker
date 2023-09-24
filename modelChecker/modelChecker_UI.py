@@ -546,10 +546,8 @@ class UI(QtWidgets.QMainWindow):
             hierachy.update(children)
         return list(hierachy)
 
-
     def sanityCheckChecked(self):
         contextsUuids = []
-        
         if cmds.ls(selection=True, typ="transform"):
             contextsUuids.append("Selection")
         else:
