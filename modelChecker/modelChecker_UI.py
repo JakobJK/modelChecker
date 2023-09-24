@@ -58,7 +58,7 @@ class UI(QtWidgets.QMainWindow):
             },
             "Global": {
                 "name": "(Default) Global",
-                "diagnostics": [],
+                "diagnostics": {},
                 "nodes": [],
             },
         }
@@ -460,7 +460,7 @@ class UI(QtWidgets.QMainWindow):
         diagnostics = self.contexts[self.currentContextUUID]['diagnostics']
         newDiagnostics = self.commandToRun([command], nodes)
         diagnostics[command] = newDiagnostics[command]
-        self.createReport(diagnostics)
+        self.createReport(self.currentContextUUID)
 
     def commandToRun(self, commands, nodes):
         diagnostics = {}
