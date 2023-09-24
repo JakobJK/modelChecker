@@ -49,7 +49,6 @@ class UI(QtWidgets.QMainWindow):
         self.setWindowTitle("Model Checker {}".format(self.version))
         self.diagnostics = {}
         self.currentContextUUID = "Global"
-        self.lastSelectedNodes = []
         self.contexts = {
             "Selection": {
                 "name": "(Default) Selection",
@@ -432,31 +431,17 @@ class UI(QtWidgets.QMainWindow):
             checked = len(uncheckedCategoryButtons) != len(categoryButtons)
             self.commandCheckBox[category].setChecked(checked)
 
-    def getFullContextFromUUID(self, contextUUID):
-        nodes = []
-        node = cmds.ls(contextUUID, long=True)
-        if node:
-            relatives = cmds.listRelatives(node[0], allDescendents=True, typ="transform", path=True)
-            if relatives:
-                nodes.extend(relatives)
-            nodes.append(node[0])
-        return nodes
-
     def filterGetAllNodes(self):
         allNodes = cmds.ls(transforms=True, long=True)
         allUsuableNodes = []
         for node in allNodes:
             if node not in {'|front', '|persp', '|top', '|side'}:
-                allUsuableNodes.append(node)
+                uuid = cmds.ls(node, uuid=True)
+                allUsuableNodes.append(uuid)
         return allUsuableNodes
     
     def oneOfs(self, command):
-        if self.currentContextUUID == "Global":
-            nodes = self.filterGetAllNodes()
-        elif self.currentContextUUID == "Selection":
-            nodes = self.lastSelectedNodes
-        else:
-            nodes = self.getFullContextFromUUID(self.currentContextUUID)
+        nodes = self.contexts[self.currentContextUUID]['nodes']
         diagnostics = self.contexts[self.currentContextUUID]['diagnostics']
         newDiagnostics = self.commandToRun([command], nodes)
         diagnostics[command] = newDiagnostics[command]
@@ -464,14 +449,16 @@ class UI(QtWidgets.QMainWindow):
 
     def commandToRun(self, commands, nodes):
         diagnostics = {}
-        SLMesh = om.MSelectionList()       
-        for node in nodes:
-            shapes = cmds.listRelatives(node, shapes=True, typ="mesh")
+        SLMesh = om.MSelectionList()
+        longNodeNames = [ cmds.ls(node, uuid=True, long=True)[0] for node in nodes ]
+        for node in longNodeNames:
+            nodeName = cmds.ls(node)
+            shapes = cmds.listRelatives(nodeName, shapes=True, typ="mesh")
             if shapes:
                 SLMesh.add(node)
         for command in commands:
             errors = getattr(
-                mcc, command)(nodes, SLMesh)
+                mcc, command)(longNodeNames, SLMesh)
             diagnostics[command] = errors
         SLMesh.clear()
         return diagnostics
@@ -530,12 +517,13 @@ class UI(QtWidgets.QMainWindow):
                     for node in diagnostics[error]:
                         name = node.split(".")[0]
                         store[name] = store.get(name, 0) + 1
+
                     for node in store:
                         word = "issues" if store[node] > 1 else "issue"
-                        html += "&#9492;&#9472; {} - <font color=#9c4f4f>{} {}</font><br>".format(name, store[node], word)
+                        html += "&#9492;&#9472; {} - <font color=#9c4f4f>{} {}</font><br>".format(node[1:], store[node], word)
                 else:
                     for node in diagnostics[error]:
-                        html += "&#9492;&#9472; {}<br>".format(node)
+                        html += "&#9492;&#9472; {}<br>".format(node[1:])
         self.reportOutputUI.insertHtml(html)
 
     def changeConsolidated(self):
@@ -552,7 +540,6 @@ class UI(QtWidgets.QMainWindow):
     def sanityCheckChecked(self):
         selectedNodes = cmds.ls(selection=True, typ="transform", long=True)
         if selectedNodes:
-            self.lastSelectedNodes = self.selectHierachy(selectedNodes)
             self.sanityCheck(["Selection"])
         else:
             self.sanityCheck(["Global"])
@@ -597,14 +584,14 @@ class UI(QtWidgets.QMainWindow):
             if contextUUID == "Global":
                 nodes = self.filterGetAllNodes()
             elif contextUUID == "Selection":
-                nodes = [node for node in self.lastSelectedNodes if cmds.objExists(node)]
+                nodes = [node for node in self.contexts[contextUUID]['nodes'] if cmds.objExists(node)]
                 if not nodes:
-                    selectedNodes = cmds.ls(selection=True, typ="transform", long=True)
+                    selectedNodes = cmds.ls(selection=True, uuid=True, typ="transform", long=True)
                     if selectedNodes:
                         self.lastSelectedNodes = self.selectHierachy(selectedNodes)
                         nodes = self.lastSelectedNodes
             else:
-                nodes = self.getFullContextFromUUID(contextUUID)
+                nodes = [node for node in self.contexts[contextUUID]['nodes'] if cmds.objExists(node)]
             
             if not nodes:
                 cmds.warning("No nodes to check")
