@@ -436,9 +436,8 @@ class UI(QtWidgets.QMainWindow):
         allUsuableNodes = []
         for node in allNodes:
             if node not in {'|front', '|persp', '|top', '|side'}:
-                uuid = cmds.ls(node, uuid=True)
-                if uuid:
-                    allUsuableNodes.append(uuid[0])
+                uuid = cmds.ls(node, uuid=True)[0]
+                allUsuableNodes.append(uuid)
         return allUsuableNodes
     
     def oneOfs(self, command):
@@ -458,16 +457,19 @@ class UI(QtWidgets.QMainWindow):
             if shapes:
                 SLMesh.add(node)
         for command in commands:
-            errors = getattr(
+            type, errors = getattr(
                 mcc, command)(nodes, SLMesh)
-            diagnostics[command] = errors
+            diagnostics[command] = {"type": type, "uuids": errors}
         SLMesh.clear()
         return diagnostics
 
 
-    def parseErrors(self, errors, type):
+    def parseErrors(self, errors):
+        uuids = errors['uuids']
+        type =  errors['type']
+
         if type == 'nodes':
-            return [ cmds.ls(node)[0] for node in errors ]
+            return [ cmds.ls(node)[0] for node in errors['uuids'] ]
         
         outputErrors = []
         typeMapping = {
@@ -477,10 +479,9 @@ class UI(QtWidgets.QMainWindow):
             "polygon": ".f[{}]",
          }
         
-        
-        for uuid in errors:
+        for uuid in uuids:
             nodeName = cmds.ls(uuid)[0]
-            for component in errors[uuid]:
+            for component in uuids[uuid]:
                 outputErrors.append(nodeName + typeMapping[type].format(component))
         return outputErrors
 
@@ -516,10 +517,7 @@ class UI(QtWidgets.QMainWindow):
                 self.commandLabel[error].setStyleSheet('background-color: none;')
                 continue
             
-            parsedErrors = []
-            for key in diagnostics[error]:
-                parsedErrors.extend(self.parseErrors(diagnostics[error][key], key))
-
+            parsedErrors = self.parseErrors(diagnostics[error])
             failed = len(parsedErrors) != 0
             if failed:
                 self.errorNodesButton[error].setEnabled(True)
@@ -633,15 +631,13 @@ class UI(QtWidgets.QMainWindow):
         self.setRowFromUUID(self.currentContextUUID)
 
     def selectErrorNodes(self, errors):
-        parsedErrors = []
-        for key in errors:
-            parsedErrors.extend(self.parseErrors(errors[key], key))
-        cmds.select(parsedErrors)
+        cmds.select(self.parseErrors(errors))
     
     def countErrors(self, diagnostics):
         count = 0
         for error in diagnostics:
-            count += 1 if len(diagnostics[error]) > 0 else 0
+            for component in diagnostics[error]:
+                count += 1 if len(diagnostics[error][component]) > 0 else 0
         return (len(diagnostics) - count, len(diagnostics))
 
     def saveSettings(self):

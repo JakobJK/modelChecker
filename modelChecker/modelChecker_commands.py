@@ -3,14 +3,12 @@ from collections import defaultdict
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
 
-# Returns Error Objects
-# {
+# Returns Error Tuple
 #     "uv": {}, [UUID] : [... uvId]
 #     "vertex": {},[UUID] : [... vertexId ]
 #     "edge" : {},[UUID] : [... edgeId ]
 #     "polygon": {}, --> [UUID] : [... polygonId ]
 #     "nodes" : [] -> [... nodes UUIDs]
-# }
 
 # Internal Utility Functions
 def _getNodeName(uuid):
@@ -27,7 +25,7 @@ def trailingNumbers(nodes, _):
         nodeName = _getNodeName(node)
         if nodeName and nodeName[-1].isdigit():
                 trailingNumbers.append(node)
-    return {"nodes": trailingNumbers }
+    return "nodes", trailingNumbers
 
 def duplicatedNames(nodes, _):
     nodesByShortName = defaultdict(list)
@@ -39,7 +37,7 @@ def duplicatedNames(nodes, _):
     for name, shortNameNodes in nodesByShortName.items():
         if len(shortNameNodes) > 1:
             invalid.extend(shortNameNodes)
-    return {"nodes": invalid}
+    return "nodes", invalid
 
 
 def namespaces(nodes, _):
@@ -48,7 +46,7 @@ def namespaces(nodes, _):
         nodeName = _getNodeName(node)
         if nodeName and ':' in nodeName:
             namespaces.append(node)
-    return {"nodes": namespaces }
+    return "nodes", namespaces
 
 
 def shapeNames(nodes, _):
@@ -62,7 +60,7 @@ def shapeNames(nodes, _):
                 shapename = new[-1] + "Shape"
                 if shape[0] != shapename:
                     shapeNames.append(node)
-    return {"nodes": shapeNames}
+    return "nodes", shapeNames
 
 def triangles(_, SLMesh):
     triangles = defaultdict(list)
@@ -77,7 +75,7 @@ def triangles(_, SLMesh):
                 triangles[uuid].append(faceIt.index())
             faceIt.next()
         selIt.next()
-    return {"polygon": triangles}
+    return "polygon", triangles
 
 
 def ngons(_, SLMesh):
@@ -93,7 +91,7 @@ def ngons(_, SLMesh):
                 ngons[uuid].append(faceIt.index())
             faceIt.next()
         selIt.next()
-    return {"polygon": ngons}
+    return "polygon", ngons
 
 def hardEdges(_, SLMesh):
     hardEdges = defaultdict(list)
@@ -107,7 +105,7 @@ def hardEdges(_, SLMesh):
                 hardEdges[uuid].append(edgeIt.index())
             edgeIt.next()
         selIt.next()
-    return {"edge": hardEdges}
+    return "edge", hardEdges
 
 def lamina(_, SLMesh):
     lamina = defaultdict(list)
@@ -122,7 +120,7 @@ def lamina(_, SLMesh):
                 lamina[uuid].append(faceIt.index())
             faceIt.next()
         selIt.next()
-    return {"polygon": lamina}
+    return "polygon", lamina
 
 
 def zeroAreaFaces(_, SLMesh):
@@ -138,7 +136,7 @@ def zeroAreaFaces(_, SLMesh):
                 zeroAreaFaces[uuid].append(faceIt.index())
             faceIt.next()
         selIt.next()
-    return {"polygon": zeroAreaFaces}
+    return "polygon", zeroAreaFaces
 
 
 def zeroLengthEdges(_, SLMesh):
@@ -153,7 +151,7 @@ def zeroLengthEdges(_, SLMesh):
                 zeroLengthEdges[uuid].append(edgeIt.index())
             edgeIt.next()
         selIt.next()
-    return { "edge": zeroLengthEdges }
+    return "edge", zeroLengthEdges
 
 def selfPenetratingUVs(transformNodes, _):
     selfPenetratingUVs = defaultdict(list)
@@ -169,7 +167,7 @@ def selfPenetratingUVs(transformNodes, _):
             overlapping = cmds.polyUVOverlap("{}.f[*]".format(shapes[0]), oc=True)
             if overlapping:
                 selfPenetratingUVs[node].extend(overlapping)
-    return {"polygon": selfPenetratingUVs}
+    return "polygon", selfPenetratingUVs
 
 def noneManifoldEdges(_, SLMesh):
     noneManifoldEdges = defaultdict(list)
@@ -183,7 +181,7 @@ def noneManifoldEdges(_, SLMesh):
                 noneManifoldEdges[uuid].append(edgeIt.index())
             edgeIt.next()
         selIt.next()
-    return {"edge": noneManifoldEdges}
+    return "edge", noneManifoldEdges
 
 
 def openEdges(_, SLMesh):
@@ -198,7 +196,7 @@ def openEdges(_, SLMesh):
                 openEdges[uuid].append(edgeIt.index())
             edgeIt.next()
         selIt.next()
-    return {"edge": openEdges}
+    return "edge", openEdges
 
 
 def poles(_, SLMesh):
@@ -213,7 +211,7 @@ def poles(_, SLMesh):
                 poles[uuid].append(vertexIt.index())
             vertexIt.next()
         selIt.next()
-    return {"vertex": poles}
+    return "vertex", poles
 
 
 def starlike(_, SLMesh):
@@ -228,7 +226,7 @@ def starlike(_, SLMesh):
                 noneStarlike[uuid].append(polyIt.index())
             polyIt.next()
         selIt.next()
-    return {"polygon": noneStarlike}
+    return "polygon", noneStarlike
 
 def missingUVs(_, SLMesh):
     missingUVs = defaultdict(list)
@@ -242,7 +240,7 @@ def missingUVs(_, SLMesh):
                 missingUVs[uuid].append(faceIt.index())
             faceIt.next()
         selIt.next()
-    return {"polygon": missingUVs}
+    return "polygon", missingUVs
 
 def uvRange(_, SLMesh):
     uvRange = defaultdict(list)
@@ -256,7 +254,7 @@ def uvRange(_, SLMesh):
             if Us[i] < 0 or Us[i] > 10 or Vs[i] < 0:
                 uvRange[uuid].append(i)
         selIt.next()
-    return {"uv": uvRange}
+    return "uv", uvRange
 
 def onBorder(_, SLMesh):
     onBorder = defaultdict(list)
@@ -270,7 +268,7 @@ def onBorder(_, SLMesh):
             if abs(int(Us[i]) - Us[i]) < 0.00001 or abs(int(Vs[i]) - Vs[i]) < 0.00001:
                 onBorder[uuid].append(i)
         selIt.next()
-    return {"uv": onBorder}
+    return "uv", onBorder
 
 def crossBorder(_, SLMesh):
     crossBorder = defaultdict(list)
@@ -296,7 +294,7 @@ def crossBorder(_, SLMesh):
                 cmds.warning("Face " + str(faceIt.index()) + " has no UVs")
                 faceIt.next()
         selIt.next()
-    return {"polygon": crossBorder}
+    return "polygon", crossBorder
 
 def unfrozenTransforms(nodes, _):
     unfrozenTransforms = []
@@ -308,7 +306,7 @@ def unfrozenTransforms(nodes, _):
         scale = cmds.xform(nodeName, q=True, worldSpace=True, scale=True)
         if translation != [0.0, 0.0, 0.0] or rotation != [0.0, 0.0, 0.0] or scale != [1.0, 1.0, 1.0]:
             unfrozenTransforms.append(node)
-    return {"nodes": unfrozenTransforms}
+    return "nodes", unfrozenTransforms
 
 def layers(nodes, _):
     layers = []
@@ -317,7 +315,7 @@ def layers(nodes, _):
         layer = cmds.listConnections(nodeName, type="displayLayer")
         if layer:
             layers.append(node)
-    return {"nodes": layers}
+    return "nodes", layers
 
 def shaders(transformNodes, _):
     shaders = []
@@ -328,7 +326,7 @@ def shaders(transformNodes, _):
             shadingGrps = cmds.listConnections(shape, type='shadingEngine')
             if shadingGrps[0] != 'initialShadingGroup':
                 shaders.append(node)
-    return {"nodes": shaders}
+    return "nodes", shaders
 
 def history(nodes, _):
     history = []
@@ -339,7 +337,7 @@ def history(nodes, _):
             historySize = len(cmds.listHistory(shape))
             if historySize > 1:
                 history.append(node)
-    return {"nodes": history}
+    return "nodes", history
 
 def uncenteredPivots(nodes, _):
     uncenteredPivots = []
@@ -347,7 +345,7 @@ def uncenteredPivots(nodes, _):
         nodeName = _getNodeName(node)
         if cmds.xform(nodeName, q=1, ws=1, rp=1) != [0, 0, 0]:
             uncenteredPivots.append(node)
-    return {"nodes": uncenteredPivots}
+    return "nodes", uncenteredPivots
 
 
 def emptyGroups(nodes, _):
@@ -356,7 +354,7 @@ def emptyGroups(nodes, _):
         nodeName = _getNodeName(node)
         if not cmds.listRelatives(nodeName, ad=True):
             emptyGroups.append(node)
-    return {"nodes": emptyGroups}
+    return "nodes", emptyGroups
 
 def parentGeometry(transformNodes, _):
     parentGeometry = []
@@ -369,4 +367,4 @@ def parentGeometry(transformNodes, _):
                 for child in children:
                     if cmds.nodeType(child) == 'mesh':
                         parentGeometry.append(node)
-    return {"nodes": parentGeometry}
+    return "nodes", parentGeometry
