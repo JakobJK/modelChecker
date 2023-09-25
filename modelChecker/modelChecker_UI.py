@@ -437,7 +437,8 @@ class UI(QtWidgets.QMainWindow):
         for node in allNodes:
             if node not in {'|front', '|persp', '|top', '|side'}:
                 uuid = cmds.ls(node, uuid=True)
-                allUsuableNodes.append(uuid)
+                if uuid:
+                    allUsuableNodes.append(uuid[0])
         return allUsuableNodes
     
     def oneOfs(self, command):
@@ -458,10 +459,30 @@ class UI(QtWidgets.QMainWindow):
                 SLMesh.add(node)
         for command in commands:
             errors = getattr(
-                mcc, command)(longNodeNames, SLMesh)
+                mcc, command)(nodes, SLMesh)
             diagnostics[command] = errors
         SLMesh.clear()
         return diagnostics
+
+
+    def parseErrors(self, errors, type):
+        if type == 'nodes':
+            return [ cmds.ls(node)[0] for node in errors ]
+        
+        outputErrors = []
+        typeMapping = {
+            "uv": ".map[{}]",
+            "vertex": ".vtx[{}]",
+            "edge": ".e[{}]",
+            "polygon": ".f[{}]",
+         }
+        
+        
+        for uuid in errors:
+            nodeName = cmds.ls(uuid)[0]
+            for component in errors[uuid]:
+                outputErrors.append(nodeName + typeMapping[type].format(component))
+        return outputErrors
 
 
     def createReport(self, uuid):
@@ -482,6 +503,7 @@ class UI(QtWidgets.QMainWindow):
             for node in nodes:
                 html += "&#9492;&#9472; {}<br>".format(node)
             html += "<br><br>"
+            
 
         if len(diagnostics) == 0:
             html += "{} - No tests run in this context.".format(self.contexts[self.currentContextUUID]['name'])
@@ -493,7 +515,12 @@ class UI(QtWidgets.QMainWindow):
                 self.errorNodesButton[error].setEnabled(False)
                 self.commandLabel[error].setStyleSheet('background-color: none;')
                 continue
-            failed = len(diagnostics[error]) != 0
+            
+            parsedErrors = []
+            for key in diagnostics[error]:
+                parsedErrors.extend(self.parseErrors(diagnostics[error][key], key))
+
+            failed = len(parsedErrors) != 0
             if failed:
                 self.errorNodesButton[error].setEnabled(True)
                 self.errorNodesButton[error].clicked.connect(partial(self.selectErrorNodes, diagnostics[error]))
@@ -502,7 +529,7 @@ class UI(QtWidgets.QMainWindow):
                 self.errorNodesButton[error].setEnabled(False)
                 self.commandLabel[error].setStyleSheet('background-color: #446644;')
             label = self.commandsList[error]['label']
-            failed = len(diagnostics[error]) != 0
+            failed = len(parsedErrors) != 0
             if lastFailed != failed and lastFailed is not None or (failed is True and lastFailed is True):
                 html += "<br>"
             lastFailed = failed
@@ -512,18 +539,18 @@ class UI(QtWidgets.QMainWindow):
                 html += "{}<font color=#64a65a> [ SUCCESS ]</font><br>".format(label)
             
             if failed:
-                if consolidated and "." in diagnostics[error][0]:
+                if consolidated and len(parsedErrors) > 0:
                     store = {}
-                    for node in diagnostics[error]:
+                    for node in parsedErrors:
                         name = node.split(".")[0]
                         store[name] = store.get(name, 0) + 1
 
                     for node in store:
                         word = "issues" if store[node] > 1 else "issue"
                         html += "&#9492;&#9472; {} - <font color=#9c4f4f>{} {}</font><br>".format(node[1:], store[node], word)
-                else:
-                    for node in diagnostics[error]:
-                        html += "&#9492;&#9472; {}<br>".format(node[1:])
+            else:
+                for node in parsedErrors:
+                    html += "&#9492;&#9472; {}<br>".format(node.keys()[0])
         self.reportOutputUI.insertHtml(html)
 
     def changeConsolidated(self):
@@ -566,7 +593,7 @@ class UI(QtWidgets.QMainWindow):
             uuidItem = self.contextTable.item(rowIdx, 0)
             uuid = uuidItem.text()
             contextsUuids.append(uuid)
-        self.sanityCheck(contextsUuids)
+        self.sanityCheck(contextsUuids, False)
 
     def sanityCheck(self, contextsUuids, refreshSelection = True):
         checkedCommands = []
@@ -586,7 +613,7 @@ class UI(QtWidgets.QMainWindow):
                 if refreshSelection:
                     selectedNodes = cmds.ls(selection=True, uuid=True, typ="transform")
                     nodes = self.selectHierachy(selectedNodes)
-                if nodes:
+                else:
                     nodes = self.contexts[contextUUID]['nodes']
             else:
                 nodes = self.contexts[contextUUID]['nodes']
@@ -605,8 +632,11 @@ class UI(QtWidgets.QMainWindow):
 
         self.setRowFromUUID(self.currentContextUUID)
 
-    def selectErrorNodes(self, nodes):
-        cmds.select(nodes)
+    def selectErrorNodes(self, errors):
+        parsedErrors = []
+        for key in errors:
+            parsedErrors.extend(self.parseErrors(errors[key], key))
+        cmds.select(parsedErrors)
     
     def countErrors(self, diagnostics):
         count = 0
@@ -653,7 +683,6 @@ class UI(QtWidgets.QMainWindow):
         row = item.row()
         for column in range(self.contextTable.columnCount()):
             self.contextTable.item(row, column).setBackgroundColor(QtGui.QColor(0,0,0,0))
-        
         testItem = self.contextTable.item(row, 3)
         testItem.setText("0")
     
