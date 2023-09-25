@@ -122,8 +122,7 @@ class UI(QtWidgets.QMainWindow):
 
     def addNodeAsContext(self, node):
         uuid = cmds.ls(node, uuid=True)[0]
-        allDescendants = cmds.listRelatives(node, allDescendents=True, type="transform")
-        nodesCount = (0 if not allDescendants else len(allDescendants)) + 1
+        allDescendants = self.selectHierachy([uuid])
         uuidItem = QtWidgets.QTableWidgetItem(uuid)
 
         self.contexts[uuid] = {
@@ -133,7 +132,7 @@ class UI(QtWidgets.QMainWindow):
             "tableItem": uuidItem,
         }
         contextItem = QtWidgets.QTableWidgetItem(node)
-        nodesItem = QtWidgets.QTableWidgetItem(str(nodesCount))
+        nodesItem = QtWidgets.QTableWidgetItem(str(len(allDescendants)))
         testsItem = QtWidgets.QTableWidgetItem("0")
         newRowIdx = self.contextTable.rowCount()
         self.contextTable.insertRow(newRowIdx)
@@ -249,6 +248,7 @@ class UI(QtWidgets.QMainWindow):
             self.contextTable.setItem(idx, 2, nodesItem)
             self.contextTable.setItem(idx, 3, testsItem)
 
+        self.contextTable.setColumnHidden(0, True)
         self.contextTable.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.reportOutputUI = QtWidgets.QTextEdit()
         self.reportOutputUI.setReadOnly(True)
@@ -450,7 +450,7 @@ class UI(QtWidgets.QMainWindow):
     def commandToRun(self, commands, nodes):
         diagnostics = {}
         SLMesh = om.MSelectionList()
-        longNodeNames = [ cmds.ls(node, uuid=True, long=True)[0] for node in nodes ]
+        longNodeNames = [ cmds.ls(node, uuid=True)[0] for node in nodes ]
         for node in longNodeNames:
             nodeName = cmds.ls(node)
             shapes = cmds.listRelatives(nodeName, shapes=True, typ="mesh")
@@ -532,30 +532,30 @@ class UI(QtWidgets.QMainWindow):
     def selectHierachy(self, nodes):
         hierachy = set()
         for node in nodes:
-            children = cmds.ls(node, typ="transform", dag=True, long=True)
+            nodeName = cmds.ls(node, uuid=True, long=True)[0]
+            children = cmds.listRelatives(nodeName, typ="transform", allDescendents=True, fullPath=True)
+            if children:
+                uuids = [cmds.ls(child, uuid=True)[0] for child in children]
+                hierachy.update(uuids)                
             hierachy.add(node)
-            hierachy.update(children)
         return list(hierachy)
 
     def sanityCheckChecked(self):
-        selectedNodes = cmds.ls(selection=True, typ="transform", long=True)
-        if selectedNodes:
-            self.sanityCheck(["Selection"])
+        if cmds.ls(selection=True, typ="transform", long=True):
+            self.sanityCheck(["Selection"], True)
         else:
             self.sanityCheck(["Global"])
 
     def sanityCheckAll(self):
         contextsUuids = []
         rowCount = self.contextTable.rowCount()
-        
         for rowIdx in range(rowCount):
             uuidItem = self.contextTable.item(rowIdx, 0)
             uuid = uuidItem.text()
             if uuid == 'Global' or uuid == 'Selection':
                 continue
             contextsUuids.append(uuid)
-        
-        self.sanityCheck(contextsUuids)
+        self.sanityCheck(contextsUuids, False)
 
 
     def sanityCheckSelected(self):
@@ -568,13 +568,13 @@ class UI(QtWidgets.QMainWindow):
             contextsUuids.append(uuid)
         self.sanityCheck(contextsUuids)
 
-    def sanityCheck(self, contextsUuids):
-        checkedCommands = []        
+    def sanityCheck(self, contextsUuids, refreshSelection = True):
+        checkedCommands = []
         
         for name in self.commandsList:
             if self.commandCheckBox[name].isChecked():
                 checkedCommands.append(name)
-        
+
         if not checkedCommands:
             cmds.warning("No commands checked")
             return
@@ -583,14 +583,13 @@ class UI(QtWidgets.QMainWindow):
             if contextUUID == "Global":
                 nodes = self.filterGetAllNodes()
             elif contextUUID == "Selection":
-                nodes = [node for node in self.contexts[contextUUID]['nodes'] if cmds.objExists(node)]
-                if not nodes:
-                    selectedNodes = cmds.ls(selection=True, uuid=True, typ="transform", long=True)
-                    if selectedNodes:
-                        self.lastSelectedNodes = self.selectHierachy(selectedNodes)
-                        nodes = self.lastSelectedNodes
+                if refreshSelection:
+                    selectedNodes = cmds.ls(selection=True, uuid=True, typ="transform")
+                    nodes = self.selectHierachy(selectedNodes)
+                if nodes:
+                    nodes = self.contexts[contextUUID]['nodes']
             else:
-                nodes = [node for node in self.contexts[contextUUID]['nodes'] if cmds.objExists(node)]
+                nodes = self.contexts[contextUUID]['nodes']
             
             if not nodes:
                 cmds.warning("No nodes to check")

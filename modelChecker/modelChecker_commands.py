@@ -15,7 +15,7 @@ def duplicatedNames(nodes, _):
     for node in nodes:
         name = node.rsplit('|', 1)[-1]
         nodesByShortName[name].append(node)
-
+        
     invalid = []
     for name, shortNameNodes in nodesByShortName.items():
         if len(shortNameNodes) > 1:
