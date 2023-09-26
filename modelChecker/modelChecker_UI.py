@@ -177,6 +177,12 @@ class UI(QtWidgets.QMainWindow):
         if modifiers == QtCore.Qt.NoModifier:
             uuid = self.contextTable.item(row, 0).text()
             self.currentContextUUID = uuid
+            if uuid != "Global" and uuid != "Selection":
+                nodeName = cmds.ls(uuid, uuid=True)
+                if nodeName:
+                    self.contextTable.item(row, 1).setText(nodeName[0])
+                else:
+                    self.contextTable.item(row, 1).setText("Root node seems to be missing!")
             self.createReport(uuid)
     
     def setRowFromUUID(self, uuid):
@@ -224,7 +230,6 @@ class UI(QtWidgets.QMainWindow):
         self.contextTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.contextTable.cellClicked.connect(self.setCurrentContext)
         self.contextTable.itemSelectionChanged.connect(self.itemSelectionChanged)
-        # self.contextTable.customContextMenuRequested.connect(self.contextPopupMenu)
 
         for idx, context in enumerate(defaultContexts):
             uuidItem = QtWidgets.QTableWidgetItem(context)
@@ -277,8 +282,6 @@ class UI(QtWidgets.QMainWindow):
         report.addLayout(settingsLayout)
         report.addWidget(splitter)
         report.addLayout(runLayout)
-        
-
         self.runAllCheckedButton.clicked.connect(self.sanityCheckChecked)
         clearButton.clicked.connect(self.clearCurrentReport)
         self.contextTable.setCurrentItem(self.contextTable.item(1, 1))
@@ -463,7 +466,6 @@ class UI(QtWidgets.QMainWindow):
         SLMesh.clear()
         return diagnostics
 
-
     def parseErrors(self, errors):
         uuids = errors['uuids']
         type =  errors['type']
@@ -480,9 +482,10 @@ class UI(QtWidgets.QMainWindow):
          }
         
         for uuid in uuids:
-            nodeName = cmds.ls(uuid)[0]
-            for component in uuids[uuid]:
-                outputErrors.append(nodeName + typeMapping[type].format(component))
+            nodeName = cmds.ls(uuid)
+            if nodeName:
+                for component in uuids[uuid]:
+                    outputErrors.append(nodeName[0] + typeMapping[type].format(component))
         return outputErrors
 
 
@@ -502,7 +505,7 @@ class UI(QtWidgets.QMainWindow):
         else:
             html += "&#10752; Nodes checked:<br>"
             for node in nodes:
-                html += "&#9492;&#9472; {}<br>".format(cmds.ls(node))
+                html += "&#9492;&#9472; {}<br>".format(cmds.ls(node)[0])
             html += "<br><br>"
             
 
@@ -545,7 +548,7 @@ class UI(QtWidgets.QMainWindow):
 
                     for node in store:
                         word = "issues" if store[node] > 1 else "issue"
-                        html += "&#9492;&#9472; {} - <font color=#9c4f4f>{} {}</font><br>".format(node[1:], store[node], word)
+                        html += "&#9492;&#9472; {} - <font color=#9c4f4f>{} {}</font><br>".format(node, store[node], word)
                 else:
                     for node in parsedErrors:
                         html += "&#9492;&#9472; {}<br>".format(node)
@@ -620,6 +623,8 @@ class UI(QtWidgets.QMainWindow):
             else:
                 nodes = self.contexts[contextUUID]['nodes']
             
+            nodes = [uuid for uuid in nodes if cmds.ls(uuid, uuid=True)]
+
             if not nodes:
                 cmds.warning("No nodes to check")
                 return

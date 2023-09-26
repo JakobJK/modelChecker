@@ -160,13 +160,13 @@ def selfPenetratingUVs(transformNodes, _):
         shapes = cmds.listRelatives(
             nodeName,
             shapes=True,
-            fullPath=True,
             type="mesh",
             noIntermediate=True)
         if shapes:
             overlapping = cmds.polyUVOverlap("{}.f[*]".format(shapes[0]), oc=True)
             if overlapping:
-                selfPenetratingUVs[node].extend(overlapping)
+                formatted = [ overlap.split("{}.f[".format(shapes[0]))[1][:-1] for overlap in overlapping ]
+                selfPenetratingUVs[node].extend(formatted)
     return "polygon", selfPenetratingUVs
 
 def noneManifoldEdges(_, SLMesh):
