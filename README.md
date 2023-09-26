@@ -13,7 +13,6 @@ from modelChecker import modelChecker_UI
 
 modelChecker_UI.UI.show_UI()
 ```
-
  
 ## Usage
 
