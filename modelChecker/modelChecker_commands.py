@@ -7,7 +7,7 @@ import maya.api.OpenMaya as om
 #     "uv": {}, [UUID] : [... uvId]
 #     "vertex": {},[UUID] : [... vertexId ]
 #     "edge" : {},[UUID] : [... edgeId ]
-#     "polygon": {}, --> [UUID] : [... polygonId ]
+#     "polygon": {}, -> [UUID] : [... polygonId ]
 #     "nodes" : [] -> [... nodes UUIDs]
 
 # Internal Utility Functions

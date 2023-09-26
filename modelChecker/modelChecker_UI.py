@@ -502,7 +502,7 @@ class UI(QtWidgets.QMainWindow):
         else:
             html += "&#10752; Nodes checked:<br>"
             for node in nodes:
-                html += "&#9492;&#9472; {}<br>".format(node)
+                html += "&#9492;&#9472; {}<br>".format(cmds.ls(node))
             html += "<br><br>"
             
 
@@ -546,9 +546,10 @@ class UI(QtWidgets.QMainWindow):
                     for node in store:
                         word = "issues" if store[node] > 1 else "issue"
                         html += "&#9492;&#9472; {} - <font color=#9c4f4f>{} {}</font><br>".format(node[1:], store[node], word)
-            else:
-                for node in parsedErrors:
-                    html += "&#9492;&#9472; {}<br>".format(node.keys()[0])
+                else:
+                    for node in parsedErrors:
+                        html += "&#9492;&#9472; {}<br>".format(node)
+                        
         self.reportOutputUI.insertHtml(html)
 
     def changeConsolidated(self):
@@ -606,7 +607,10 @@ class UI(QtWidgets.QMainWindow):
     
         for contextUUID in contextsUuids:
             if contextUUID == "Global":
-                nodes = self.filterGetAllNodes()
+                if refreshSelection:
+                    nodes = self.filterGetAllNodes()
+                else:
+                    nodes = self.contexts[contextUUID]['nodes']
             elif contextUUID == "Selection":
                 if refreshSelection:
                     selectedNodes = cmds.ls(selection=True, uuid=True, typ="transform")
@@ -636,9 +640,9 @@ class UI(QtWidgets.QMainWindow):
     def countErrors(self, diagnostics):
         count = 0
         for error in diagnostics:
-            for component in diagnostics[error]:
-                count += 1 if len(diagnostics[error][component]) > 0 else 0
-        return (len(diagnostics) - count, len(diagnostics))
+            if not diagnostics[error]['uuids']:
+                count += 1
+        return (count, len(diagnostics))
 
     def saveSettings(self):
         settings = {}
