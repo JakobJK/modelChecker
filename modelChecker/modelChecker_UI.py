@@ -453,7 +453,8 @@ class UI(QtWidgets.QMainWindow):
     def commandToRun(self, commands, nodes):
         diagnostics = {}
         SLMesh = om.MSelectionList()
-        longNodeNames = [ cmds.ls(node, uuid=True)[0] for node in nodes ]
+        nodes = [node for node in nodes if cmds.ls(node, uuid=True)] 
+        longNodeNames = [cmds.ls(node, uuid=True)[0] for node in nodes]
         for node in longNodeNames:
             nodeName = cmds.ls(node)
             shapes = cmds.listRelatives(nodeName, shapes=True, typ="mesh")
@@ -471,7 +472,12 @@ class UI(QtWidgets.QMainWindow):
         type =  errors['type']
 
         if type == 'nodes':
-            return [ cmds.ls(node)[0] for node in errors['uuids'] ]
+            nodes = []
+            for node in errors['uuids']:
+                curNode = cmds.ls(node)
+                if curNode:
+                    nodes.append(curNode[0])
+            return nodes
         
         outputErrors = []
         typeMapping = {

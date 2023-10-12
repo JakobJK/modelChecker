@@ -341,6 +341,7 @@ def history(nodes, _):
 
 def uncenteredPivots(nodes, _):
     uncenteredPivots = []
+    print(nodes)
     for node in nodes:
         nodeName = _getNodeName(node)
         if cmds.xform(nodeName, q=1, ws=1, rp=1) != [0, 0, 0]:
