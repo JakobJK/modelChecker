@@ -18,7 +18,7 @@ description = " Sanity checking tool for polygon models in Maya"
 
 authors = ["Jakob Kousholt", "Niels Peter Kaagaard "]
 
-variants = [["python-3+<4"]]
+variants = [["python-2.7"], ["python-3+<4"]]
 
 
 def commands():
