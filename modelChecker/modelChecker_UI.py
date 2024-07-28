@@ -1,6 +1,15 @@
-from PySide2 import QtWidgets, QtCore, QtGui
+IS_PYSIDE_6 = None
 
-from shiboken2 import wrapInstance
+try:
+    from PySide6 import QtCore, QtWidgets, QtGui
+    from shiboken6 import wrapInstance
+    IS_PYSIDE_6 = True
+
+except ImportError:
+    from PySide2 import QtCore, QtWidgets, QtGui
+    from shiboken2 import wrapInstance
+    IS_PYSIDE_6 = False
+
 from functools import partial
 import json
 import maya.cmds as cmds
@@ -683,7 +692,11 @@ class UI(QtWidgets.QMainWindow):
         color = "#446644" if passed == total else "#664444"
         row = item.row()
         for column in range(self.contextTable.columnCount()):
-            self.contextTable.item(row, column).setBackgroundColor(QtGui.QColor(color))
+            if IS_PYSIDE_6:
+                self.contextTable.item(row, column).setBackground(QtGui.QColor(color))
+            else:
+                self.contextTable.item(row, column).setBackgroundColor(QtGui.QColor(color))
+            
         nodesItem = self.contextTable.item(row, 2)
         testItem = self.contextTable.item(row, 3)
 
@@ -693,7 +706,10 @@ class UI(QtWidgets.QMainWindow):
     def clearRowFromItem(self, item):
         row = item.row()
         for column in range(self.contextTable.columnCount()):
-            self.contextTable.item(row, column).setBackgroundColor(QtGui.QColor(0,0,0,0))
+            if IS_PYSIDE_6:
+                self.contextTable.item(row, column).setBackground(QtGui.QColor(0,0,0,0))
+            else:
+                self.contextTable.item(row, column).setBackgroundColor(QtGui.QColor(0,0,0,0))
         testItem = self.contextTable.item(row, 3)
         testItem.setText("0")
     
