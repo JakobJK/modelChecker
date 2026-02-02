@@ -4,7 +4,6 @@ from modelChecker.checks import all_checks
 
 from modelChecker.ui.check_widget import CheckWidget
 from modelChecker.ui.category_widget import CategoryWidget
-from modelChecker.constants import Severity
 
 class ChecksUI(QtWidgets.QWidget):
     select_error_signal = QtCore.Signal(object)
@@ -15,8 +14,8 @@ class ChecksUI(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         
-        self.categories = {}  # Only stores CategoryWidget instances
-        self.checks = {}      # Only stores CheckWidget instances
+        self.categories = {}
+        self.checks = {}
         
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.content_widget = QtWidgets.QWidget()

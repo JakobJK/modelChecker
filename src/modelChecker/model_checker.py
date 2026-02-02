@@ -1,7 +1,7 @@
 import maya.OpenMayaUI as omui
 from PySide6 import QtCore, QtWidgets
 from shiboken6 import wrapInstance
-from modelChecker.constants import TITLE, OBJ_NAME, DataType
+from modelChecker.constants import TITLE, OBJ_NAME 
 from modelChecker.__version__ import __version__
 from modelChecker.ui.report_ui import ReportUI
 from modelChecker.ui.checks_ui import ChecksUI
@@ -9,10 +9,10 @@ from modelChecker.ui.settings_ui import SettingsUI
 from modelChecker.ui.progress_ui import ProgressUI
 from modelChecker.runner import Runner
 
-def getMainWindow():
-    mainWindowPtr = omui.MQtUtil.mainWindow()
-    mainWindow = wrapInstance(int(mainWindowPtr), QtWidgets.QWidget)
-    return mainWindow        
+def get_main_window():
+    main_window_pointer = omui.MQtUtil.mainWindow()
+    main_window = wrapInstance(int(main_window_pointer), QtWidgets.QWidget)
+    return main_window        
 
 class UI(QtWidgets.QMainWindow):
     qmwInstance = None
@@ -27,8 +27,8 @@ class UI(QtWidgets.QMainWindow):
             cls.qmwInstance.raise_()
             cls.qmwInstance.activateWindow()
 
-    def __init__(self, parent=getMainWindow()):
-        super().__init__(parent)
+    def __init__(self, parent=get_main_window()):
+        super().__init__()
         
         self.current_check = None
         
@@ -48,7 +48,7 @@ class UI(QtWidgets.QMainWindow):
         self.report_ui.verbosity_signal.connect(self.handle_verbose_level_change)
         
         self.progress_ui = ProgressUI()
-        self.settings_ui = SettingsUI(DataType.MAYA)
+        self.settings_ui = SettingsUI()
         self.settings_ui.on_settings_changed.connect(self.handle_settings_changed)
         
         self.runner = Runner()
@@ -113,14 +113,12 @@ class UI(QtWidgets.QMainWindow):
         
     def handle_run(self, check):
         """Handle the check selection and update the UI accordingly."""
-        data_type = self.settings_ui.get_data_type()
-        self.runner.run([check], data_type, refresh_context=False)
+        self.runner.run([check], refresh_context=False)
     
     def run_all(self):
         self.checks_ui.reset_checks()
         active_checks_widgets = self.checks_ui.get_all_widgets(active=True)
-        data_type = self.settings_ui.get_data_type()
-        self.runner.run(active_checks_widgets, data_type)
+        self.runner.run(active_checks_widgets)
         
     def handle_uncheck_passed(self):
         result_object = self.runner.get_result_object()

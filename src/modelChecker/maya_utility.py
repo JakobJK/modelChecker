@@ -1,6 +1,5 @@
 """ Helpful utility functions for maya"""
 from maya import cmds
-import mayaUsd.lib as mayaUsdLib
 
 def get_name_from_uuid(uuid, long=True):
     node_name = cmds.ls(uuid, long=long)
@@ -15,18 +14,9 @@ def get_uuid_from_name(node):
     return None
 
 def get_uuid_from_shape(shape_node):
-    transform_node = cmds.listRelatives(shape_node, parent=True)[0]
-    transform_uuid = cmds.ls(transform_node, uuid=True)[0]
-    return transform_uuid
+    if parent_node := cmds.listRelatives(shape_node, parent=True):
+        return get_uuid_from_name(parent_node[0])
 
-
-def _get_all_prims_from_proxy(proxy_shape_name):
-    stage = mayaUsdLib.GetPrim(proxy_shape_name).GetStage()
-    all_prim_paths = []
-    for prim in stage.Traverse():
-        full_path = f"{proxy_shape_name},{prim.GetPath().pathString}"
-        all_prim_paths.append(full_path)
-    return all_prim_paths
 
 def get_all_nodes():
     all_nodes = []    
@@ -35,9 +25,6 @@ def get_all_nodes():
             children = cmds.listRelatives(node, shapes=True, fullPath=True) or []
             for child in children:
                 if cmds.nodeType(child) == 'mayaUsdProxyShape':
-                    all_prim_paths = _get_all_prims_from_proxy(child)
-                    all_nodes.extend(all_prim_paths)
-                else:
                     all_nodes.append(get_uuid_from_name(node))
     return all_nodes
 

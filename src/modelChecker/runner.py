@@ -2,7 +2,6 @@
 from maya import cmds
 from modelChecker import maya_utility
 from PySide6 import QtWidgets, QtCore
-from modelChecker.constants import DataType
 
 import maya.api.OpenMaya as om
 
@@ -11,35 +10,25 @@ class Runner(QtCore.QObject):
     progress_signal = QtCore.Signal(object)
     error_signal = QtCore.Signal(object)
     
-    def __init__(self):
+    def __init__(self, checks):
         super().__init__()
         self.current_check = None
         self.current_number_check = 0
         self.scheduled_checks_amount = 0
         
         self.current_context = "all"
-        self.contexts = {"all": { "maya": {}, "usd": {}}, "selection": { "maya": {}, "usd": {}}}
+        self.contexts = {"all": { "maya": {}}, "selection": { "maya": {}}}
         self.interrupt = False
         self.result_object = {}
         self.nodes = []
-        self.usd_nodes = []
         self.cached_data = {}
     
-    def _setup_context(self, data_type):
-        nodes, usd_nodes = [], []
+    def _setup_context(self):
         selection = cmds.ls(selection=True, ufe=True, uuid=True)
         all_nodes = selection if selection else maya_utility.get_all_nodes()
         self.current_context = "selection" if selection else "all"
-        self.contexts[self.current_context] =  {"maya": {}, "usd": {}}
-        for node in all_nodes:
-            if node[0] == '|':
-                if data_type != DataType.MAYA:
-                    usd_nodes.append(node)
-            else:
-                if data_type != DataType.USD:
-                    nodes.append(node)
-                    
-        self.nodes, self.usd_nodes = nodes, usd_nodes
+        self.contexts[self.current_context] =  {"maya": {}}
+        self.nodes = all_nodes 
         
     
     def stop(self):
@@ -53,11 +42,11 @@ class Runner(QtCore.QObject):
         return self.contexts[self.current_context] == {'maya': {}, 'usd': {}}
 
     
-    def run(self, check_widgets, data_type: DataType, refresh_context: bool = True):
+    def run(self, check_widgets, refresh_context: bool = True):
         if refresh_context or self.is_current_context_empty():
-            self._setup_context(data_type)
+            self._setup_context()
         
-        if not self.nodes and not self.usd_nodes:
+        if not self.nodes:
             self._error_run("No Nodes to tests")
             return
             
@@ -82,17 +71,10 @@ class Runner(QtCore.QObject):
             self._update_progressbars(nodes_total=1, current_node=1)
             had_error = bool(maya_result or usd_result)
             check_widget.update_ui(had_error)
-            if data_type != DataType.USD and check.get_data_type() != DataType.USD:
-                maya_error_object[name] = maya_result
-                
-            if data_type != DataType.MAYA and check.get_data_type() != DataType.MAYA:
-                usd_error_object[name] = usd_result
         
         self.result_object = {
         'maya_error_object': maya_error_object,
-        'usd_error_object': usd_error_object,
         'maya_nodes': self.nodes,
-        'usd_nodes': self.usd_nodes,
         'interrupted': self.interrupt,
         'context': self.current_context,
         'check_widgets': check_widgets,
@@ -109,7 +91,6 @@ class Runner(QtCore.QObject):
         
     def reset_contexts(self):
         self.nodes = []
-        self.usd_nodes = []
         self.contexts = {"all": { "maya": {}, "usd": {}}, "selection": { "maya": {}, "usd": {}}}
         self.current_context = "all"
         self.cached_data = {}
@@ -176,23 +157,6 @@ class Runner(QtCore.QObject):
             current_node += 1
             iterator.next()
             
-    def get_usd_root_nodes(self):
-        root_nodes = []
-        
-        for node in self.usd_nodes:
-            usd_path = node.split(',')[1]
-            
-            if usd_path.count('/') == 1:
-                root_nodes.append(node)
-        
-        nodes_total = len(root_nodes)
-        for idx, node in enumerate(root_nodes):
-            self._update_progressbars(nodes_total, idx + 1)
-            QtWidgets.QApplication.processEvents()
-            if self.interrupt:
-                break
-            yield node
-
     
     def get_maya_root_nodes(self):
         root_nodes = []
@@ -221,15 +185,6 @@ class Runner(QtCore.QObject):
                 break
             yield node
             
-    def get_usd_nodes(self):
-        """Iterator to be called by the check functions!"""
-        nodes_total = len(self.usd_nodes)
-        for idx, node in enumerate(self.usd_nodes):
-            self._update_progressbars(nodes_total, idx+1)
-            QtWidgets.QApplication.processEvents()
-            if self.interrupt:
-                break
-            yield node
     
     def _update_progressbars(self, nodes_total, current_node):
         label = self.current_check.label

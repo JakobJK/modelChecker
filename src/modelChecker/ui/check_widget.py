@@ -25,10 +25,9 @@ class CheckWidget(QtWidgets.QWidget):
         self.info_label.setFixedWidth(20)
         self.info_label.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
-        self.tooltip = CheckTooltipWidget(self, self.check.description, self.check.severity, self.check.get_data_type())
+        self.tooltip = CheckTooltipWidget(self, self.check.description, self.check.severity)
         
         self.check_label = QtWidgets.QLabel(self.check.label)
-        self.check_label.setMinimumWidth(180)
         
         self.settings_widget = QtWidgets.QWidget()
         self.settings_widget.setVisible(False)

@@ -32,15 +32,6 @@ class Severity(Enum):
             return self.value < other.value
         return NotImplemented
 
-class DataType(Enum):
-    MAYA = auto()
-    USD = auto()
-    BOTH = auto()
-
-    def __ge__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value >= other.value
-        return NotImplemented
 
 PASS_COLOR = "#446644"
 
