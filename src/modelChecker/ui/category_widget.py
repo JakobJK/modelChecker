@@ -1,5 +1,5 @@
 from PySide6 import QtWidgets
-from ..constants import EXPANDED_LABEL, COLLAPSED_LABEL
+from modelChecker.constants import EXPANDED_LABEL, COLLAPSED_LABEL
 from modelChecker.ui.check_widget import CheckWidget
 
 class CategoryWidget(QtWidgets.QWidget):
@@ -9,7 +9,7 @@ class CategoryWidget(QtWidgets.QWidget):
         
         category_layout = QtWidgets.QVBoxLayout(self)
         category_layout.setContentsMargins(0, 0, 0, 0)
-        category_layout.setSpacing(2)
+        category_layout.setSpacing(0)
         
         category_header_widget = QtWidgets.QWidget()
         category_header_layout = QtWidgets.QHBoxLayout(category_header_widget)
@@ -29,7 +29,7 @@ class CategoryWidget(QtWidgets.QWidget):
         self.category_body_widget = QtWidgets.QWidget()
         self.category_body_layout = QtWidgets.QVBoxLayout(self.category_body_widget)
         self.category_body_layout.setContentsMargins(0, 0, 0, 0)
-        self.category_body_layout.setSpacing(2)
+        self.category_body_layout.setSpacing(0)
         
         category_layout.addWidget(category_header_widget)
         category_layout.addWidget(self.category_body_widget)

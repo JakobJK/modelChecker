@@ -35,6 +35,7 @@ class Severity(Enum):
 
 PASS_COLOR = "#446644"
 
+
 SEVERITY_COLORS = {
     Severity.MILD: "#666644",        
     Severity.MODERATE: "#777711",

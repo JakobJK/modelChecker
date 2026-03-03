@@ -10,14 +10,11 @@ class Runner(QtCore.QObject):
     progress_signal = QtCore.Signal(object)
     error_signal = QtCore.Signal(object)
     
-    def __init__(self, checks):
+    def __init__(self):
         super().__init__()
         self.current_check = None
         self.current_number_check = 0
         self.scheduled_checks_amount = 0
-        
-        self.current_context = "all"
-        self.contexts = {"all": { "maya": {}}, "selection": { "maya": {}}}
         self.interrupt = False
         self.result_object = {}
         self.nodes = []
@@ -56,7 +53,6 @@ class Runner(QtCore.QObject):
         
         context = self.get_context()
         maya_error_object = self.contexts[context]['maya']
-        usd_error_object = self.contexts[context]['usd']
                 
         self.scheduled_checks_amount = len(check_widgets)
 
@@ -66,7 +62,6 @@ class Runner(QtCore.QObject):
                 break
             self.current_check = check
             self.current_number_check = idx + 1
-            name = check.get_name()
             maya_result, usd_result = check.do_run(self)
             self._update_progressbars(nodes_total=1, current_node=1)
             had_error = bool(maya_result or usd_result)
@@ -124,6 +119,7 @@ class Runner(QtCore.QObject):
     def get_mesh_shapes(self):
         if "mesh_shapes" in self.cached_data:
             return self.cached_data["mesh_shapes"]
+
         mesh_shapes = []
         node_names = [ maya_utility.get_name_from_uuid(node, long=False) for node in self.nodes ]
         for node in node_names:
@@ -147,6 +143,7 @@ class Runner(QtCore.QObject):
         iterator = om.MItSelectionList(sel_mesh)
         current_node = 0
         nodes_total = len(self.get_mesh_shapes())
+
         while not iterator.isDone():
             self._update_progressbars(nodes_total, current_node+1)
             QtWidgets.QApplication.processEvents()
@@ -160,7 +157,6 @@ class Runner(QtCore.QObject):
     
     def get_maya_root_nodes(self):
         root_nodes = []
-        
         for node in self.nodes:
             node_name = maya_utility.get_name_from_uuid(node)
             parent = cmds.listRelatives(node_name, parent=True)
@@ -184,10 +180,9 @@ class Runner(QtCore.QObject):
             if self.interrupt:
                 break
             yield node
-            
     
     def _update_progressbars(self, nodes_total, current_node):
-        label = self.current_check.label
+        label = "" if not self.current_check else self.current_check.label
         total_checks = self.scheduled_checks_amount
         current_check = self.current_number_check
         self.progress_signal.emit({
@@ -197,6 +192,6 @@ class Runner(QtCore.QObject):
             "nodes_total": nodes_total,
             "current_node": current_node
             })
-        
+    
     def _error_run(self, message):
         self.error_signal.emit({"error": message})

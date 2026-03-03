@@ -1,7 +1,8 @@
 from abc import ABC
-from modelChecker.constants import Severity, NodeType, COMPONENT_MAPPING
+from modelChecker.constants import Severity, NodeType, DataType, COMPONENT_MAPPING
 from modelChecker import maya_utility
 from maya import cmds
+
 
 class ValidationCheckBase(ABC):
     name: str

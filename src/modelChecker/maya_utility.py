@@ -1,24 +1,28 @@
 """ Helpful utility functions for maya"""
+
+from typing import List
+
 from maya import cmds
 
-def get_name_from_uuid(uuid, long=True):
+def get_name_from_uuid(uuid: str, long: bool = True) -> str:
     node_name = cmds.ls(uuid, long=long)
     if node_name:
         return node_name[0]
-    return None
+    return "" 
 
-def get_uuid_from_name(node):
+def get_uuid_from_name(node: str) -> str:
     node_uuid = cmds.ls(node, uuid=True)
     if node_uuid:
         return node_uuid[0]
-    return None
+    return "" 
 
-def get_uuid_from_shape(shape_node):
+def get_uuid_from_shape(shape_node: str) -> str:
     if parent_node := cmds.listRelatives(shape_node, parent=True):
         return get_uuid_from_name(parent_node[0])
+    return ""
 
 
-def get_all_nodes():
+def get_all_nodes() -> List[str]:
     all_nodes = []    
     for node in cmds.ls(transforms=True, long=True):
         if node not in {'|front', '|persp', '|top', '|side'}:
@@ -29,7 +33,7 @@ def get_all_nodes():
     return all_nodes
 
 
-def select_hierachy(nodes):
+def select_hierachy(nodes: List[str]):
     hierachy = set()
     for node in nodes:
         node_name = cmds.ls(node, uuid=True, long=True)[0]
